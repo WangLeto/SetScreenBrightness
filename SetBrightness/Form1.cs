@@ -14,6 +14,7 @@ namespace SetBrightness
         private bool _mouseDown;
         private readonly Timer _timer = new Timer(200);
         private bool _canChangeVisible = true;
+        private readonly MouseHook _mouseHook = new MouseHook();
 
         public Form1()
         {
@@ -26,24 +27,39 @@ namespace SetBrightness
             label1.DataBindings.Add("Text", trackBar1, "Value");
 
             Visible = false;
-            MouseWheel += TrackBar1_MouseWheel;
+
+            _mouseHook.MouseWheel += _mouseHook_MouseWheel;
+            _mouseHook.Install();
+
             Closing += Form1_Closing;
+
             _timer.Elapsed += (sender, args) =>
             {
                 _canChangeVisible = true;
                 _timer.Stop();
             };
 
+            Application.ApplicationExit += Application_ApplicationExit;
+
             CheckRegistry();
         }
 
-        #region 滚轮事件
-
-        private void TrackBar1_MouseWheel(object sender, MouseEventArgs e)
+        private void Application_ApplicationExit(object sender, EventArgs e)
         {
-            ((HandledMouseEventArgs) e).Handled = true;
+            _mouseHook.Uninstall();
+        }
+
+        private void _mouseHook_MouseWheel(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
+        {
+            if (!Visible)
+            {
+                goOn = true;
+                return;
+            }
+
+            Int16 delta = (short) (mouseStruct.mouseData >> 16);
             var wheelChange = 5;
-            if (e.Delta > 0)
+            if (delta > 0)
             {
                 if (trackBar1.Value + wheelChange <= trackBar1.Maximum)
                 {
@@ -65,9 +81,9 @@ namespace SetBrightness
                     trackBar1.Value = trackBar1.Minimum;
                 }
             }
-        }
 
-        #endregion
+            goOn = false;
+        }
 
         private void BindSlider()
         {
@@ -155,7 +171,7 @@ namespace SetBrightness
 
             var tsmi = sender as ToolStripMenuItem;
 
-            EditRegistry(tsmi.CheckState != CheckState.Checked);
+            EditRegistry(tsmi != null && tsmi.CheckState != CheckState.Checked);
         }
 
         private void EditRegistry(bool delete)
