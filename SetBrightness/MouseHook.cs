@@ -72,10 +72,11 @@ namespace SetBrightness
             {
                 if (MouseMessages.WmMousewheel == (MouseMessages) wParam)
                 {
+                    Msllhookstruct msllhookstruct = (Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct));
                     if (MouseWheel != null)
                     {
                         bool goOn;
-                        MouseWheel((Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct)), out goOn);
+                        MouseWheel(msllhookstruct, out goOn);
                         if (!goOn)
                         {
                             return 1;

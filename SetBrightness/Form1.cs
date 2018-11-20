@@ -30,6 +30,7 @@ namespace SetBrightness
 
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.Install();
+            GC.KeepAlive(_mouseHook);
 
             Closing += Form1_Closing;
 
