@@ -26,9 +26,12 @@ namespace SetBrightness
 
         private IntPtr _hookId = IntPtr.Zero;
 
+        private MouseHookHandler _mouseHookHandler;
+
         public void Install()
         {
-            _hookId = SetHook(HookFunc);
+            _mouseHookHandler = HookFunc;
+            _hookId = SetHook(_mouseHookHandler);
         }
 
         /// <summary>
@@ -72,7 +75,8 @@ namespace SetBrightness
             {
                 if (MouseMessages.WmMousewheel == (MouseMessages) wParam)
                 {
-                    Msllhookstruct msllhookstruct = (Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct));
+                    Msllhookstruct msllhookstruct =
+                        (Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct));
                     if (MouseWheel != null)
                     {
                         bool goOn;
