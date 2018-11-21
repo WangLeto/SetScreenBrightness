@@ -13,9 +13,11 @@ namespace SetBrightness
     {
         private readonly BrightnessControl _brightnessControl;
         private int _workingDisplay;
+
         private bool _autoStartMenuItemMouseDown;
-        private readonly Timer _timer = new Timer(200);
-        private bool _canChangeVisible = true;
+
+       private readonly Timer _timer = new Timer(200);
+       private bool _canChangeVisible = true;
         private readonly MouseHook _mouseHook = new MouseHook();
         public static string WindowName = "亮度调节";
         private bool _useContrastMenuItemMouseDown;
@@ -42,7 +44,6 @@ namespace SetBrightness
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.Install();
 
-            Closing += Form1_Closing;
 
             _timer.Elapsed += (sender, args) =>
             {
@@ -145,12 +146,6 @@ namespace SetBrightness
             _brightnessControl?.SetBrightness((short) trackBar_brightness.Value, _workingDisplay);
         }
 
-        private void Form1_Closing(object sender, CancelEventArgs e)
-        {
-            Visible = false;
-            e.Cancel = true;
-        }
-
         private void notifyIcon1_MouseClick(object sender, MouseEventArgs e)
         {
             if (_canChangeVisible && e.Button == MouseButtons.Left)
@@ -169,9 +164,10 @@ namespace SetBrightness
         private void Relocate()
         {
             var screen = Screen.FromHandle(Handle);
-            var x = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 100;
-            var y = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 10;
-            Location = new Point(x, y);
+            var left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
+            var left2 = Cursor.Position.X - Width / 2;
+            Left = Math.Min(left, left2);
+            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 5;
             Activate();
         }
 
