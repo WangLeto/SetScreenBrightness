@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace SetBrightness
 {
@@ -73,19 +74,22 @@ namespace SetBrightness
             // parse system messages
             if (nCode >= 0)
             {
-                if (MouseMessages.WmMousewheel == (MouseMessages) wParam)
+                Msllhookstruct msllhookstruct =
+                    (Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct));
+                switch ((MouseMessages) wParam)
                 {
-                    Msllhookstruct msllhookstruct =
-                        (Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct));
-                    if (MouseWheel != null)
-                    {
-                        bool goOn;
-                        MouseWheel(msllhookstruct, out goOn);
-                        if (!goOn)
+                    case MouseMessages.WmMouseWheel:
+                        if (MouseWheel != null)
                         {
-                            return 1;
+                            bool goOn;
+                            MouseWheel(msllhookstruct, out goOn);
+                            if (!goOn)
+                            {
+                                return 1;
+                            }
                         }
-                    }
+
+                        break;
                 }
             }
 
@@ -98,7 +102,10 @@ namespace SetBrightness
 
         private enum MouseMessages
         {
-            WmMousewheel = 0x020A
+            WmMouseWheel = 0x020A,
+            WmLbuttonDown = 0x0201,
+            WmRbuttonDown = 0x0204,
+            WmMbuttonDown = 0x0207
         }
 
         [StructLayout(LayoutKind.Sequential)]
