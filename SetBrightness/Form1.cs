@@ -134,6 +134,7 @@ namespace SetBrightness
 
         private void Exit_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            notifyIcon1.Visible = false;
             _brightnessControl.DestroyMonitors();
             Application.Exit();
         }

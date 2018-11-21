@@ -16,8 +16,6 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
-                // 重要补充
-                notifyIcon1.Visible = false;
             }
             base.Dispose(disposing);
         }
