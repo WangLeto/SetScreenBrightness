@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using Timer = System.Timers.Timer;
@@ -15,10 +16,12 @@ namespace SetBrightness
         private readonly Timer _timer = new Timer(200);
         private bool _canChangeVisible = true;
         private readonly MouseHook _mouseHook = new MouseHook();
+        public static string WindowName = "亮度调节";
 
         public Form1()
         {
             InitializeComponent();
+            ChangeWindowMessageFilter(WmCopydata, 1);
 
             var hWnd = Handle;
             _brightnessControl = new BrightnessControl(hWnd);
@@ -28,9 +31,10 @@ namespace SetBrightness
 
             Visible = false;
 
+            Text = WindowName;
+            notifyIcon1.Text = WindowName;
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.Install();
-            GC.KeepAlive(_mouseHook);
 
             Closing += Form1_Closing;
 
@@ -43,6 +47,12 @@ namespace SetBrightness
             Application.ApplicationExit += Application_ApplicationExit;
 
             CheckRegistry();
+        }
+
+        public sealed override string Text
+        {
+            get { return base.Text; }
+            set { base.Text = value; }
         }
 
         private void Application_ApplicationExit(object sender, EventArgs e)
@@ -252,5 +262,39 @@ namespace SetBrightness
                 Visible = false;
             }
         }
+
+        #region 消息
+
+        private const int WmCopydata = 0x004A;
+
+        [DllImport("user32")]
+        public static extern bool ChangeWindowMessageFilter(uint msg, int flags);
+
+        #region windows api functions
+
+        protected override void DefWndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case WmCopydata:
+                    MessageSender.CopyDataStruct mystr = new MessageSender.CopyDataStruct();
+                    Type mytype = mystr.GetType();
+                    mystr = (MessageSender.CopyDataStruct) m.GetLParam(mytype);
+                    if (mystr.LpData == MessageSender.Msg)
+                    {
+                        notifyIcon1.ShowBalloonTip(1500, "运行中", WindowName + "已经在运行", ToolTipIcon.Info);
+                        Visible = true;
+                    }
+
+                    break;
+                default:
+                    base.DefWndProc(ref m);
+                    break;
+            }
+        }
+
+        #endregion
+
+        #endregion
     }
 }

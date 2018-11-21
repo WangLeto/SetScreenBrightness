@@ -85,6 +85,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="MessageSender.cs" />
     <Compile Include="MouseHook.cs" />
     <Compile Include="Native.cs" />
     <Compile Include="Program.cs" />

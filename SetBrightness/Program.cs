@@ -23,7 +23,7 @@ namespace SetBrightness
                 }
                 else
                 {
-                    MessageBox.Show("程序已经在运行");
+                    MessageSender.SendMessageToProcess(Form1.WindowName, MessageSender.Msg);
                     Application.Exit();
                 }
             }
