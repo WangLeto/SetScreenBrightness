@@ -29,16 +29,34 @@ namespace SetBrightness
             NativeCalls.SetMonitorBrightness(_pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor, brightness);
         }
 
-        public BrightnessInfo GetBrightnessCapabilities(int monitorNumber)
+        public void SetContrast(short contrast, int monitorNumber)
+        {
+            NativeCalls.SetMonitorContrast(_pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor, contrast);
+        }
+
+        public MonitorInfo GetMonitorCapabilities(int monitorNumber, bool isBrightness)
         {
             short current = -1, minimum = -1, maximum = -1;
-            bool succeed = NativeCalls.GetMonitorBrightness(_pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor, ref minimum,
-                ref current, ref maximum);
+            bool succeed;
+            if (isBrightness)
+            {
+                succeed = NativeCalls.GetMonitorBrightness(_pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor,
+                    ref minimum,
+                    ref current, ref maximum);
+            }
+            else
+            {
+                succeed = NativeCalls.GetMonitorContrast(_pPhysicalMonitorArray[monitorNumber].hPhysicalMonitor,
+                    ref minimum,
+                    ref current, ref maximum);
+            }
+
             if (!succeed)
             {
                 throw new GetBrightnessInfoError();
             }
-            return new BrightnessInfo {Minimum = minimum, Maximum = maximum, Current = current};
+
+            return new MonitorInfo {Minimum = minimum, Maximum = maximum, Current = current};
         }
 
         public void DestroyMonitors()
@@ -52,7 +70,7 @@ namespace SetBrightness
         }
     }
 
-    public struct BrightnessInfo
+    public struct MonitorInfo
     {
         public int Minimum;
         public int Maximum;

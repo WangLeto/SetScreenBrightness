@@ -35,6 +35,16 @@ namespace SetBrightness
         public static extern bool GetMonitorBrightness(
             IntPtr hMonitor, ref short pdwMinimumBrightness, ref short pdwCurrentBrightness,
             ref short pdwMaximumBrightness);
+
+        [DllImport("dxva2.dll", EntryPoint = "SetMonitorContrast", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetMonitorContrast(IntPtr hMonitor, short brightness);
+
+        [DllImport("dxva2.dll", EntryPoint = "GetMonitorContrast", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetMonitorContrast(
+            IntPtr hMonitor, ref short pdwMinimumContrast, ref short pdwCurrentContrast,
+            ref short pdwMaximumContrast);
     }
 
     public class NativeConstants
