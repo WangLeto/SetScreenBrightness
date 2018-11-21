@@ -16,6 +16,8 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                // 重要补充
+                notifyIcon1.Visible = false;
             }
             base.Dispose(disposing);
         }
@@ -147,11 +149,11 @@
 
         private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem 退出程序ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem AutoStart_ToolStripMenuItem;
         private System.Windows.Forms.Button button1;
+        public System.Windows.Forms.NotifyIcon notifyIcon1;
     }
 }
 

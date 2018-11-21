@@ -11,10 +11,22 @@ namespace SetBrightness
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Form form = new Form1();
-            Application.Run();
+            bool createNew;
+            using (new System.Threading.Mutex(true, Application.ProductName, out createNew))
+            {
+                if (createNew)
+                {
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
+                    Form form = new Form1();
+                    Application.Run();
+                }
+                else
+                {
+                    MessageBox.Show("程序已经在运行");
+                    Application.Exit();
+                }
+            }
         }
     }
 }
