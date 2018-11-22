@@ -4,6 +4,8 @@ This application can set your external screen's brightness and contrast (contras
 
 这款软件用于设置外接显示器的亮度和对比度（对比度设置需要右键托盘栏图标开启），也可以设置随开机自启动。
 
+![](http://qiniu1.letow.top/snipaste%202018.11.22-20.00.jpg)
+
 # attention
 
 You can only use it for your external screen which turn the DDC/CI protocol on (usually enabled, you can use physical buttons on screen to check), and this application only work for one screen (because I don't have two).
