@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -12,17 +11,18 @@ namespace SetBrightness
     public partial class Form1 : Form
     {
         private readonly BrightnessControl _brightnessControl;
-        private int _workingDisplay;
+        private int _displayHandler;
 
         private bool _autoStartMenuItemMouseDown;
+        private bool _canChangeVisible = true;
 
-       private readonly Timer _timer = new Timer(200);
-       private bool _canChangeVisible = true;
+        private readonly Timer _timer = new Timer(200);
         private readonly MouseHook _mouseHook = new MouseHook();
         public static string WindowName = "亮度调节";
         private bool _useContrastMenuItemMouseDown;
-        private const int _high_height = 110;
-        private const int _low_height = 66;
+        private const int HighHeight = 110;
+        private const int LowHeight = 66;
+        private readonly DelayAction _delayAction = new DelayAction();
 
         public Form1()
         {
@@ -31,19 +31,23 @@ namespace SetBrightness
 
             var hWnd = Handle;
             _brightnessControl = new BrightnessControl(hWnd);
-            BindSlider();
+            UpdateScreenHandler();
+
+            trackBar_brightness.ValueChanged += TrackBarBrightness_ValueChanged;
+            trackBar_contrast.ValueChanged += TrackBar_contrast_ValueChanged;
+            UpdateTrackBarValue();
 
             label_brightness.DataBindings.Add("Text", trackBar_brightness, "Value");
             label_contrast.DataBindings.Add("Text", trackBar_contrast, "value");
 
             Visible = false;
-            Height = _low_height;
+            Height = LowHeight;
 
             Text = WindowName;
             notifyIcon.Text = WindowName;
+
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.Install();
-
 
             _timer.Elapsed += (sender, args) =>
             {
@@ -72,6 +76,64 @@ namespace SetBrightness
                 Settings.Default.Save();
                 SwitchContrast(value);
             }
+        }
+
+        private struct MonitorInfos
+        {
+            public MonitorInfo Brightness;
+            public MonitorInfo Contrast;
+
+            public override string ToString()
+            {
+                return "亮度：" + Brightness.Current + "　对比度：" + Contrast.Current;
+            }
+
+            public void GetInfos(BrightnessControl control, int handler)
+            {
+                Brightness = control.GetMonitorCapabilities(handler, true);
+                Contrast = control.GetMonitorCapabilities(handler, false);
+            }
+        }
+
+        private MonitorInfos MonitorInfosWrap
+        {
+            get
+            {
+                var infos = new MonitorInfos();
+                try
+                {
+                    infos.GetInfos(_brightnessControl, _displayHandler);
+                }
+                catch (GetMonitorInfoFailException)
+                {
+                    UpdateScreenHandler();
+                    infos.GetInfos(_brightnessControl, _displayHandler);
+                }
+
+                return infos;
+            }
+        }
+
+        private void UpdateScreenHandler()
+        {
+            try
+            {
+                _displayHandler = _brightnessControl.updateDisplayHandler();
+            }
+            catch (NoSupportMonitorException)
+            {
+                MessageBox.Show("查找支持的显示器失败，程序将退出。\r\n\r\nFinding supporting screen failed, exiting.");
+                notifyIcon.Visible = false;
+                Environment.Exit(1);
+            }
+        }
+
+        private void UpdateTrackBarValue()
+        {
+            var infos = MonitorInfosWrap;
+            // 更新 trackBar 值
+            trackBar_brightness.Value = infos.Brightness.Current;
+            trackBar_contrast.Value = infos.Contrast.Current;
         }
 
         private void Application_ApplicationExit(object sender, EventArgs e)
@@ -115,35 +177,14 @@ namespace SetBrightness
             goOn = false;
         }
 
-        private void BindSlider()
-        {
-            var count = _brightnessControl.GetMonitors();
-            var brightnessInfo = new MonitorInfo();
-            var contrastInfo = new MonitorInfo();
-            for (var i = 0; i < count; i++)
-            {
-                brightnessInfo = _brightnessControl.GetMonitorCapabilities(i, true);
-                if (brightnessInfo.Current == -1)
-                    continue;
-                contrastInfo = _brightnessControl.GetMonitorCapabilities(i, false);
-                _workingDisplay = i;
-                break;
-            }
-
-            trackBar_brightness.Value = brightnessInfo.Current;
-            trackBar_brightness.ValueChanged += TrackBarBrightness_ValueChanged;
-            trackBar_contrast.Value = contrastInfo.Current;
-            trackBar_contrast.ValueChanged += TrackBar_contrast_ValueChanged;
-        }
-
         private void TrackBar_contrast_ValueChanged(object sender, EventArgs e)
         {
-            _brightnessControl?.SetContrast((short) trackBar_contrast.Value, _workingDisplay);
+            _brightnessControl?.SetContrast((short) trackBar_contrast.Value, _displayHandler);
         }
 
         private void TrackBarBrightness_ValueChanged(object sender, EventArgs e)
         {
-            _brightnessControl?.SetBrightness((short) trackBar_brightness.Value, _workingDisplay);
+            _brightnessControl?.SetBrightness((short) trackBar_brightness.Value, _displayHandler);
         }
 
         private void notifyIcon1_MouseClick(object sender, MouseEventArgs e)
@@ -161,7 +202,16 @@ namespace SetBrightness
             Application.Exit();
         }
 
-        private void Relocate()
+        private void Form1_VisibleChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                UpdateTrackBarValue();
+                RelocateForm();
+            }
+        }
+
+        private void RelocateForm()
         {
             var screen = Screen.FromHandle(Handle);
             var left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
@@ -169,34 +219,6 @@ namespace SetBrightness
             Left = Math.Min(left, left2);
             Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 5;
             Activate();
-        }
-
-        private void Form1_VisibleChanged(object sender, EventArgs e)
-        {
-            if (Visible)
-            {
-                MonitorInfo brightnessInfo;
-                MonitorInfo contrastInfo;
-                try
-                {
-                    brightnessInfo = _brightnessControl.GetMonitorCapabilities(_workingDisplay, true);
-                    contrastInfo = _brightnessControl.GetMonitorCapabilities(_workingDisplay, false);
-                }
-                catch (Exception exception)
-                {
-                    Console.WriteLine(exception);
-                    _brightnessControl.DestroyMonitors();
-                    _brightnessControl.SetupMonitors();
-                    BindSlider();
-                    brightnessInfo = _brightnessControl.GetMonitorCapabilities(_workingDisplay, true);
-                    contrastInfo = _brightnessControl.GetMonitorCapabilities(_workingDisplay, false);
-                }
-
-                trackBar_brightness.Value = brightnessInfo.Current;
-                trackBar_contrast.Value = contrastInfo.Current;
-
-                Relocate();
-            }
         }
 
         private void AutoStart_ToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
@@ -209,7 +231,6 @@ namespace SetBrightness
             _autoStartMenuItemMouseDown = false;
 
             var tsmi = sender as ToolStripMenuItem;
-
             EditRegistry(tsmi != null && tsmi.CheckState != CheckState.Checked);
         }
 
@@ -254,7 +275,7 @@ namespace SetBrightness
         private void SwitchContrast(bool on)
         {
             label_contrast.Visible = trackBar_contrast.Visible = on;
-            Height = on ? _high_height : _low_height;
+            Height = on ? HighHeight : LowHeight;
         }
 
         private void contextMenuStrip1_Closing(object sender, ToolStripDropDownClosingEventArgs e)
@@ -354,6 +375,21 @@ namespace SetBrightness
             {
                 UseContrast = tsmi.Checked;
             }
+        }
+
+        private void notifyIcon_MouseMove(object sender, MouseEventArgs e)
+        {
+            _delayAction.Delay(2000, null, TrottleSetText);
+        }
+
+        private void TrottleSetText()
+        {
+            _delayAction.Throttle(5000, this, SetNotifyIconText);
+        }
+
+        private void SetNotifyIconText()
+        {
+            notifyIcon.Text = WindowName + "\r\n" + MonitorInfosWrap;
         }
     }
 }

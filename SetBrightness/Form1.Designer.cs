@@ -75,6 +75,7 @@
             this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
             this.notifyIcon.Visible = true;
             this.notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseClick);
+            this.notifyIcon.MouseMove += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseMove);
             // 
             // contextMenuStrip1
             // 
@@ -90,7 +91,7 @@
             // 
             this.Contast_ToolStripMenuItem.CheckOnClick = true;
             this.Contast_ToolStripMenuItem.Name = "Contast_ToolStripMenuItem";
-            this.Contast_ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.Contast_ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.Contast_ToolStripMenuItem.Text = "启用对比度";
             this.Contast_ToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.Contast_ToolStripMenuItem_CheckStateChanged);
             this.Contast_ToolStripMenuItem.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Contast_ToolStripMenuItem_MouseDown);
@@ -99,7 +100,7 @@
             // 
             this.AutoStart_ToolStripMenuItem.CheckOnClick = true;
             this.AutoStart_ToolStripMenuItem.Name = "AutoStart_ToolStripMenuItem";
-            this.AutoStart_ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.AutoStart_ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.AutoStart_ToolStripMenuItem.Text = "随开机启动";
             this.AutoStart_ToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.AutoStart_ToolStripMenuItem_CheckStateChanged);
             this.AutoStart_ToolStripMenuItem.MouseDown += new System.Windows.Forms.MouseEventHandler(this.AutoStart_ToolStripMenuItem_MouseDown);
@@ -107,7 +108,7 @@
             // 退出程序ToolStripMenuItem
             // 
             this.退出程序ToolStripMenuItem.Name = "退出程序ToolStripMenuItem";
-            this.退出程序ToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.退出程序ToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.退出程序ToolStripMenuItem.Text = "退出";
             this.退出程序ToolStripMenuItem.Click += new System.EventHandler(this.Exit_ToolStripMenuItem_Click);
             // 

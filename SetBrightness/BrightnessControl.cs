@@ -14,7 +14,7 @@ namespace SetBrightness
             SetupMonitors();
         }
 
-        public void SetupMonitors()
+        private void SetupMonitors()
         {
             var hMonitor = NativeCalls.MonitorFromWindow(_hWnd, NativeConstants.MonitorDefaulttoprimary);
 
@@ -53,7 +53,7 @@ namespace SetBrightness
 
             if (!succeed)
             {
-                throw new GetBrightnessInfoError();
+                throw new GetMonitorInfoFailException();
             }
 
             return new MonitorInfo {Minimum = minimum, Maximum = maximum, Current = current};
@@ -64,9 +64,29 @@ namespace SetBrightness
             NativeCalls.DestroyPhysicalMonitors(_pdwNumberOfPhysicalMonitors, _pPhysicalMonitorArray);
         }
 
-        public uint GetMonitors()
+        private uint GetMonitors()
         {
             return _pdwNumberOfPhysicalMonitors;
+        }
+
+        public int updateDisplayHandler()
+        {
+            DestroyMonitors();
+            SetupMonitors();
+            return GetOneWorkingMonitorHandler();
+        }
+
+        private int GetOneWorkingMonitorHandler()
+        {
+            var count = GetMonitors();
+            for (var i = 0; i < count; i++)
+            {
+                var brightnessInfo = GetMonitorCapabilities(i, true);
+                if (brightnessInfo.Current == -1)
+                    continue;
+                return i;
+            }
+            throw new NoSupportMonitorException();
         }
     }
 
@@ -77,11 +97,11 @@ namespace SetBrightness
         public int Current;
     }
 
-    public class GetBrightnessInfoError : Exception
+    public class GetMonitorInfoFailException : Exception
     {
-        public override string ToString()
-        {
-            return "get brightness info failed";
-        }
+    }
+
+    public class NoSupportMonitorException : Exception
+    {
     }
 }
