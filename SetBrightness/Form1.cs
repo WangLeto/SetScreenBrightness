@@ -185,6 +185,7 @@ namespace SetBrightness
         private void TrackBarBrightness_ValueChanged(object sender, EventArgs e)
         {
             _brightnessControl?.SetBrightness((short) trackBar_brightness.Value, _displayHandler);
+            SetNotifyIconText();
         }
 
         private void notifyIcon1_MouseClick(object sender, MouseEventArgs e)
@@ -208,15 +209,26 @@ namespace SetBrightness
             {
                 UpdateTrackBarValue();
                 RelocateForm();
+                ClearNotifyIconText();
+            }
+            else
+            {
+                SetNotifyIconText();
             }
         }
 
-        private void RelocateForm()
+        private void RelocateForm(bool notUseCursorPos = false)
         {
             var screen = Screen.FromHandle(Handle);
+
             var left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
             var left2 = Cursor.Position.X - Width / 2;
-            Left = Math.Min(left, left2);
+            Left = left;
+            if (!notUseCursorPos)
+            {
+                Left = Math.Min(left, left2);
+            }
+
             Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 5;
             Activate();
         }
@@ -345,7 +357,12 @@ namespace SetBrightness
                     if (mystr.LpData == MessageSender.Msg)
                     {
                         notifyIcon.ShowBalloonTip(1500, "运行中", WindowName + "已经在运行", ToolTipIcon.Info);
+
+                        VisibleChanged -= Form1_VisibleChanged;
+                        UpdateTrackBarValue();
                         Visible = true;
+                        RelocateForm(true);
+                        VisibleChanged += Form1_VisibleChanged;
                     }
 
                     break;
@@ -379,17 +396,27 @@ namespace SetBrightness
 
         private void notifyIcon_MouseMove(object sender, MouseEventArgs e)
         {
-            _delayAction.Delay(2000, null, TrottleSetText);
+            _delayAction.Delay(1000, null, TrottleSetText);
         }
 
         private void TrottleSetText()
         {
-            _delayAction.Throttle(5000, this, SetNotifyIconText);
+            _delayAction.Throttle(2000, this, SetNotifyIconText);
         }
 
         private void SetNotifyIconText()
         {
+            if (Visible)
+            {
+                ClearNotifyIconText();
+                return;
+            }
             notifyIcon.Text = WindowName + "\r\n" + MonitorInfosWrap;
+        }
+
+        private void ClearNotifyIconText()
+        {
+            notifyIcon.Text = "";
         }
     }
 }
