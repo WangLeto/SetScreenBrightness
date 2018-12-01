@@ -8,6 +8,7 @@ using Timer = System.Timers.Timer;
 
 namespace SetBrightness
 {
+    // https://docs.microsoft.com/en-us/windows/desktop/Monitor/monitor-configuration
     public partial class Form1 : Form
     {
         private readonly BrightnessControl _brightnessControl;
@@ -26,6 +27,19 @@ namespace SetBrightness
 
         public Form1()
         {
+            new AllMonitorInfo().GetInfos();
+            new WmiMonitor("").SetBrightness(50);
+
+            var handles = DdcCiMonitorManager.GetMonitorHandles();
+            Console.WriteLine("千辛万苦拿到了句柄数目：" + handles.Count);
+            foreach (var ddcCiMonitor in handles)
+            {
+                ddcCiMonitor.SetBrightness(20);
+            }
+
+            Environment.Exit(0);
+            /*********/
+
             InitializeComponent();
             ChangeWindowMessageFilter(WmCopydata, 1);
 
@@ -411,6 +425,7 @@ namespace SetBrightness
                 ClearNotifyIconText();
                 return;
             }
+
             notifyIcon.Text = WindowName + "\r\n" + MonitorInfosWrap;
         }
 

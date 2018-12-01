@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace SetBrightness
 {
-    class AllMonitorInfo
+    partial class AllMonitorInfo
     {
         public List<MonitorDescription> GetInfos()
         {
@@ -20,7 +20,7 @@ namespace SetBrightness
                 {
                     foreach (var property in instance.Properties)
                     {
-                        Console.WriteLine(property.Name + "\t\t" + property.Value);
+//                        Console.WriteLine(property.Name + "\t\t" + property.Value);
                     }
 
                     var deviceId = (string) instance["DeviceID"];
@@ -80,14 +80,6 @@ namespace SetBrightness
         private static ManagementObjectSearcher GetSearcher(string @class)
         {
             return new ManagementObjectSearcher(new ManagementScope(@"root\wmi"), new SelectQuery(@class));
-        }
-
-        [Flags]
-        private enum DisplayDeviceFlag : uint
-        {
-            //Represents a pseudo device used to mirror application drawing for remoting or other purposes.
-            DisplayDeviceMirroringDriver = 0x00000008,
-            DisplayDeviceActive = 0x00000001
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -167,7 +159,7 @@ namespace SetBrightness
                         continue;
                     }
 
-                    Console.WriteLine(
+                    Debug.WriteLine(
                         "deviceInstanceId：" + deviceInstanceId + "\r\ndescription：" + monitor.DeviceString +
                         "\r\ndisplayIndex：" + displayIndex);
                 }
