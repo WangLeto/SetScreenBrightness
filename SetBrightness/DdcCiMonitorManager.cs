@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace SetBrightness
@@ -9,18 +10,11 @@ namespace SetBrightness
     class DdcCiMonitorManager
     {
         [DllImport("User32.dll")]
-        private static extern bool EnumDisplayMonitors(
-            IntPtr hdc,
-            IntPtr lprcClip,
-            MonitorEnumProc lpfnEnum,
+        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum,
             IntPtr dwData);
 
         [return: MarshalAs(UnmanagedType.Bool)]
-        private delegate bool MonitorEnumProc(
-            IntPtr hMonitor,
-            IntPtr hdcMonitor,
-            ref Rect lprcMonitor,
-            IntPtr dwData);
+        private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Rect
@@ -31,18 +25,6 @@ namespace SetBrightness
             public int bottom;
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct Monitorinfoex
-        {
-            public uint cbSize;
-            public Rect rcMonitor;
-            public Rect rcWork;
-            public uint dwFlags;
-
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-            public string szDevice;
-        }
-
         private static readonly List<DdcCiMonitor> DdcCiMonitors = new List<DdcCiMonitor>();
 
         /// <summary>
@@ -51,11 +33,7 @@ namespace SetBrightness
         /// <returns></returns>
         public static List<DdcCiMonitor> GetMonitorHandles()
         {
-            if (!EnumDisplayMonitors(
-                IntPtr.Zero,
-                IntPtr.Zero,
-                MonitorEnumRroc,
-                IntPtr.Zero))
+            if (!EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumRroc, IntPtr.Zero))
             {
                 Debug.WriteLine("EnumDisplayMonitors Fails");
             }
@@ -71,15 +49,44 @@ namespace SetBrightness
             // by calling GetPhysicalMonitorsFromHMONITOR.
 
             // hMonitor 表示逻辑显示器句柄，一个 hMonitor 多个 physical displays：显示设置中的复制显示器
+            var physicalHandles = GetPhysicalMonitorHandle(hMonitor);
+            foreach (var handle in physicalHandles)
+            {
+                DdcCiMonitors.Add(new DdcCiMonitor(handle));
+            }
 
-            // todo
-            DdcCiMonitors.Add(new DdcCiMonitor(hMonitor));
             return true;
         }
 
-        public static IntPtr[] GetPhysicalMonitorHandle(IntPtr hMonitor)
+        #region 获取物理显示器句柄
+
+        [DllImport("dxva2.dll", EntryPoint = "GetNumberOfPhysicalMonitorsFromHMONITOR")]
+        public static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(
+            IntPtr hMonitor, ref uint pdwNumberOfPhysicalMonitors);
+
+        [DllImport("dxva2.dll", EntryPoint = "GetPhysicalMonitorsFromHMONITOR")]
+        public static extern bool GetPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, uint dwPhysicalMonitorArraySize,
+            [Out] PhysicalMonitor[] pPhysicalMonitorArray);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct PhysicalMonitor
         {
-            return new IntPtr[0];
+            public IntPtr hPhysicalMonitor;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string szPhysicalMonitorDescription;
         }
+
+        public static List<IntPtr> GetPhysicalMonitorHandle(IntPtr hMonitor)
+        {
+            uint monitorCount = 0;
+            GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, ref monitorCount);
+            var physicalMonitors = new PhysicalMonitor[monitorCount];
+            GetPhysicalMonitorsFromHMONITOR(hMonitor, monitorCount, physicalMonitors);
+
+            return physicalMonitors.Select(physicalMonitor => physicalMonitor.hPhysicalMonitor).ToList();
+        }
+
+        #endregion
     }
 }
