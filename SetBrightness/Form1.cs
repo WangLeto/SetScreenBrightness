@@ -27,7 +27,7 @@ namespace SetBrightness
 
         public Form1()
         {
-            new AllMonitorInfo().GetInfos();
+            /*new AllMonitorInfo().GetInfos();
             new WmiMonitor("").SetBrightness(50);
 
             var handles = DdcCiMonitorManager.GetMonitorHandles();
