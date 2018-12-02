@@ -18,6 +18,8 @@ namespace SetBrightness
 
         private readonly string _instanceId;
 
+        private WmiMonitorBrightnessClass _wmiMonitorBrightness;
+
         public WmiMonitor(string instanceId)
         {
             _instanceId = instanceId;
@@ -54,24 +56,11 @@ namespace SetBrightness
 
         public override int GetBrightness(int brightness)
         {
-            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightnessMethods"))
-            using (var instances = searcher.Get())
-            {
-                foreach (var instance in instances)
-                {
-                    if (RightDevice(instance))
-                    {
-                        return (int) instance["CurrentBrightness"];
-                    }
-                }
-            }
-
-            return -1;
+            return _wmiMonitorBrightness.CurrentBrightness;
         }
 
         public WmiMonitorBrightnessClass GetBrightnessInfo()
         {
-            WmiMonitorBrightnessClass @class = new WmiMonitorBrightnessClass();
             using (var searcher = GetBrightnessSearcher("WmiMonitorBrightness"))
             using (var instances = searcher.Get())
             {
@@ -82,15 +71,15 @@ namespace SetBrightness
                         continue;
                     }
 
-                    @class.Active = (bool) instance["Active"];
-                    @class.CurrentBrightness = (byte) instance["CurrentBrightness"];
-                    @class.InstanceName = (string) instance["InstanceName"];
-                    @class.Level = (byte[]) instance["Level"];
-                    @class.Levels = (uint) instance["Levels"];
+                    _wmiMonitorBrightness.Active = (bool) instance["Active"];
+                    _wmiMonitorBrightness.CurrentBrightness = (byte) instance["CurrentBrightness"];
+                    _wmiMonitorBrightness.InstanceName = (string) instance["InstanceName"];
+                    _wmiMonitorBrightness.Level = (byte[]) instance["Level"];
+                    _wmiMonitorBrightness.Levels = (uint) instance["Levels"];
                 }
             }
 
-            return @class;
+            return _wmiMonitorBrightness;
         }
 
         public override void SetContrast(int contrast)

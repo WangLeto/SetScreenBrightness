@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace SetBrightness
 {
     // DDC/CI：https://docs.microsoft.com/en-us/windows/desktop/Monitor/monitor-configuration
-    class DdcCiMonitorManager
+    static class DdcCiMonitorManager
     {
         [DllImport("User32.dll")]
         private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum,
@@ -17,7 +17,7 @@ namespace SetBrightness
         private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData);
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct Rect
+        private struct Rect
         {
             public int left;
             public int top;
@@ -52,7 +52,11 @@ namespace SetBrightness
             var physicalHandles = GetPhysicalMonitorHandle(hMonitor);
             foreach (var handle in physicalHandles)
             {
-                DdcCiMonitors.Add(new DdcCiMonitor(handle));
+                var instance = new DdcCiMonitor(handle);
+                if (instance.CanUse)
+                {
+                    DdcCiMonitors.Add(instance);
+                }
             }
 
             return true;
@@ -74,7 +78,7 @@ namespace SetBrightness
             public IntPtr hPhysicalMonitor;
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-            public string szPhysicalMonitorDescription;
+            public readonly string szPhysicalMonitorDescription;
         }
 
         public static List<IntPtr> GetPhysicalMonitorHandle(IntPtr hMonitor)

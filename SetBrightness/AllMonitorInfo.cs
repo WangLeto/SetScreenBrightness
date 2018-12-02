@@ -16,24 +16,20 @@ namespace SetBrightness
             using (var obs = new ManagementClass("Win32_DesktopMonitor"))
             using (var instances = obs.GetInstances())
             {
-                foreach (ManagementObject instance in instances)
+                foreach (var instance in instances)
                 {
                     foreach (var property in instance.Properties)
                     {
-//                        Console.WriteLine(property.Name + "\t\t" + property.Value);
+                        Debug.WriteLine(property.Name + "\t\t" + property.Value);
                     }
 
                     var deviceId = (string) instance["DeviceID"];
                     var description = (string) instance["Description"];
+                    Debug.WriteLine("deviceId:" + deviceId + "\tdes:" + description);
                     list.Add(new MonitorDescription {DeviceId = deviceId, Description = description});
-//                    foreach (var property in instance.Properties)
-//                    {
-//                        Console.WriteLine(property.Name + "\t\t\t" + property.Value);
-//                    }
                 }
             }
 
-            Console.WriteLine(list.Count + "!!!");
             EnumerateMonitorDevices();
 
             return list;
@@ -43,43 +39,6 @@ namespace SetBrightness
         {
             public string DeviceId;
             public string Description;
-        }
-
-        public static bool SetBrightness(string deviceInstanceId, int brightness, int timeout = int.MaxValue)
-        {
-            using (var searcher = GetSearcher("WmiMonitorBrightnessMethods"))
-            using (var instances = searcher.Get())
-            {
-                foreach (ManagementObject instance in instances)
-                {
-                    var instanceName = (string) instance["InstanceName"];
-                    if (instanceName.StartsWith(deviceInstanceId, StringComparison.OrdinalIgnoreCase))
-                    {
-                        object result = instance.InvokeMethod("WmiSetBrightness",
-                            new object[] {(uint) timeout, (byte) brightness});
-
-                        var isSuccess = (result == null); // Return value will be null if succeeded.
-                        if (!isSuccess)
-                        {
-                            var errorCode = (uint) result;
-                            isSuccess = (errorCode == 0);
-                            if (!isSuccess)
-                            {
-                                Debug.WriteLine($"Failed to set brightness. ({errorCode})");
-                            }
-                        }
-
-                        return isSuccess;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        private static ManagementObjectSearcher GetSearcher(string @class)
-        {
-            return new ManagementObjectSearcher(new ManagementScope(@"root\wmi"), new SelectQuery(@class));
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -159,9 +118,10 @@ namespace SetBrightness
                         continue;
                     }
 
-                    Debug.WriteLine(
-                        "deviceInstanceId：" + deviceInstanceId + "\r\ndescription：" + monitor.DeviceString +
-                        "\r\ndisplayIndex：" + displayIndex);
+                    Debug.WriteLine("///////////////////////////\r\n" +
+                                    "deviceInstanceId：" + deviceInstanceId + "\r\ndescription：" + monitor.DeviceString +
+                                    "\r\nName：" + monitor.DeviceName +
+                                    "\r\ndisplayIndex：" + displayIndex);
                 }
             }
         }

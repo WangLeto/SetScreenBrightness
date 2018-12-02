@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using PhysicalMonitorHandle = System.IntPtr;
 
@@ -56,6 +57,12 @@ namespace SetBrightness
 
             if (highFlag.HasFlag(PdwMonitorCapabilitiesFlag.McCapsBrightness))
             {
+                if (highFlag.HasFlag(PdwMonitorCapabilitiesFlag.McCapsContrast))
+                {
+                    Debug.WriteLine("支持对比度");
+                    SupportContrast = true;
+                }
+
                 return;
             }
             else
@@ -72,7 +79,7 @@ namespace SetBrightness
         {
             if (!CanUse)
             {
-                Console.WriteLine("不支持的设备");
+                Debug.WriteLine("不支持的设备");
                 return;
             }
 
@@ -90,7 +97,7 @@ namespace SetBrightness
         private void LowLevelSetBrightness(int brightness)
         {
             var succeed = SetVCPFeature(_physicalMonitorHandle, LuminanceCode, (byte) brightness);
-            Console.WriteLine("颜色修改：" + succeed);
+            Debug.WriteLine("颜色修改：" + succeed);
         }
 
         private void HighLevelSetBrightness(int brightness)
@@ -109,13 +116,17 @@ namespace SetBrightness
             throw new NotImplementedException();
         }
 
-        public int CurrentBrightness
+        public override void SetContrast(int contrast)
         {
-            // TODO
-            get { return 1; }
+            throw new NotImplementedException();
         }
 
-        [DllImport("Dxva2.dll", SetLastError = true)]
+        public override int GetContrast(int contrast)
+        {
+            throw new NotImplementedException();
+        }
+
+        [DllImport("Dxva2.dll")]
         public static extern bool DestroyPhysicalMonitor(IntPtr hMonitor);
 
         ~DdcCiMonitor()
