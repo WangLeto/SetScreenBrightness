@@ -1,15 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Management;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace SetBrightness
 {
     class WmiMonitor : Monitor
     {
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct WmiMonitorBrightnessClass
+        {
+            public bool Active;
+            public byte CurrentBrightness;
+            public string InstanceName;
+            public byte[] Level;
+            public uint Levels;
+        }
+
         private readonly string _instanceId;
 
         public WmiMonitor(string instanceId)
@@ -20,38 +26,35 @@ namespace SetBrightness
 
         public override void SetBrightness(int brightness)
         {
-            using (ManagementObjectSearcher searcher = GetBrightnessSearcher())
+            using (ManagementObjectSearcher searcher = GetBrightnessSearcher("WmiMonitorBrightnessMethods"))
             using (ManagementObjectCollection instances = searcher.Get())
             {
                 foreach (var instance in instances)
                 {
-                    // todo 设备验证
-                    //  var instanceName = instance["InstanceName"];
-                    //  if (!_instanceId.Contains((string) instanceName))
-                    //  {
-                    //      continue;
-                    //  }
+                    if (!RightDevice(instance))
+                    {
+                        continue;
+                    }
 
                     ((ManagementObject) instance).InvokeMethod("WmiSetBrightness", new object[]
                     {
                         (uint) 2, (byte) brightness
                     });
-                    instance.Dispose();
                 }
             }
         }
-        
-        private ManagementObjectSearcher GetBrightnessSearcher()
+
+        private ManagementObjectSearcher GetBrightnessSearcher(string queryStr)
         {
             var scope = new ManagementScope("root\\WMI");
-            var query = new SelectQuery("WmiMonitorBrightnessMethods");
+            var query = new SelectQuery(queryStr);
 
             return new ManagementObjectSearcher(scope, query);
         }
 
         public override int GetBrightness(int brightness)
         {
-            using (var searcher = GetBrightnessSearcher())
+            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightnessMethods"))
             using (var instances = searcher.Get())
             {
                 foreach (var instance in instances)
@@ -63,6 +66,39 @@ namespace SetBrightness
                 }
             }
 
+            return -1;
+        }
+
+        public WmiMonitorBrightnessClass GetBrightnessInfo()
+        {
+            WmiMonitorBrightnessClass @class = new WmiMonitorBrightnessClass();
+            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightness"))
+            using (var instances = searcher.Get())
+            {
+                foreach (var instance in instances)
+                {
+                    if (!RightDevice(instance))
+                    {
+                        continue;
+                    }
+
+                    @class.Active = (bool) instance["Active"];
+                    @class.CurrentBrightness = (byte) instance["CurrentBrightness"];
+                    @class.InstanceName = (string) instance["InstanceName"];
+                    @class.Level = (byte[]) instance["Level"];
+                    @class.Levels = (uint) instance["Levels"];
+                }
+            }
+
+            return @class;
+        }
+
+        public override void SetContrast(int contrast)
+        {
+        }
+
+        public override int GetContrast(int contrast)
+        {
             return -1;
         }
 
