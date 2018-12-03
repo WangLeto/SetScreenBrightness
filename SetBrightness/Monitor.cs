@@ -14,8 +14,8 @@ namespace SetBrightness
         public string Name = "test";
 
         public abstract void SetBrightness(int brightness);
-        public abstract int GetBrightness(int brightness);
+        public abstract int GetBrightness();
         public abstract void SetContrast(int contrast);
-        public abstract int GetContrast(int contrast);
+        public abstract int GetContrast();
     }
 }

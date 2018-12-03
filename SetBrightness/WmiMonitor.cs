@@ -1,10 +1,9 @@
-﻿using System;
-using System.Management;
+﻿using System.Management;
 using System.Runtime.InteropServices;
 
 namespace SetBrightness
 {
-    class WmiMonitor : Monitor
+    internal class WmiMonitor : Monitor
     {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct WmiMonitorBrightnessClass
@@ -54,7 +53,7 @@ namespace SetBrightness
             return new ManagementObjectSearcher(scope, query);
         }
 
-        public override int GetBrightness(int brightness)
+        public override int GetBrightness()
         {
             return _wmiMonitorBrightness.CurrentBrightness;
         }
@@ -86,7 +85,7 @@ namespace SetBrightness
         {
         }
 
-        public override int GetContrast(int contrast)
+        public override int GetContrast()
         {
             return -1;
         }

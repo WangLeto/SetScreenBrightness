@@ -111,7 +111,7 @@ namespace SetBrightness
             value = Math.Min(100, value);
         }
 
-        public override int GetBrightness(int brightness)
+        public override int GetBrightness()
         {
             throw new NotImplementedException();
         }
@@ -121,7 +121,7 @@ namespace SetBrightness
             throw new NotImplementedException();
         }
 
-        public override int GetContrast(int contrast)
+        public override int GetContrast()
         {
             throw new NotImplementedException();
         }
