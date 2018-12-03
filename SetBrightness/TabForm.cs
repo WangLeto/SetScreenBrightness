@@ -15,7 +15,21 @@ namespace SetBrightness
         public TabForm()
         {
             InitializeComponent();
-            tabControl.TabPages.Add("1st");
+            AddMonitor(new WmiMonitor(""));
+        }
+
+        private void AddMonitor(Monitor monitor)
+        {
+            var page = new TabPage(monitor.Name);
+            page.Controls.Add(new TabPageTemplate(monitor));
+            tabControl.TabPages.Add(page);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            ControlPaint.DrawBorder(e.Graphics, ClientRectangle, Color.FromArgb(214, 214, 214),
+                ButtonBorderStyle.Solid);
         }
     }
 }

@@ -102,6 +102,12 @@
     <Compile Include="TabForm.Designer.cs">
       <DependentUpon>TabForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TabPageTemplate.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TabPageTemplate.Designer.cs">
+      <DependentUpon>TabPageTemplate.cs</DependentUpon>
+    </Compile>
     <Compile Include="WmiMonitor.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
@@ -118,6 +124,9 @@
     </Compile>
     <EmbeddedResource Include="TabForm.resx">
       <DependentUpon>TabForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TabPageTemplate.resx">
+      <DependentUpon>TabPageTemplate.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

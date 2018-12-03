@@ -33,17 +33,17 @@
             // 
             // tabControl
             // 
-            this.tabControl.Location = new System.Drawing.Point(2, 2);
+            this.tabControl.Location = new System.Drawing.Point(1, 1);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(373, 129);
+            this.tabControl.Size = new System.Drawing.Size(380, 150);
             this.tabControl.TabIndex = 0;
             // 
             // TabForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(375, 131);
+            this.ClientSize = new System.Drawing.Size(382, 152);
             this.Controls.Add(this.tabControl);
             this.Font = new System.Drawing.Font("微软雅黑", 9F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
