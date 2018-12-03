@@ -18,7 +18,6 @@ namespace SetBrightness
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
-                    Form form = new Form1();
                     Application.Run(new TabForm());
                 }
                 else

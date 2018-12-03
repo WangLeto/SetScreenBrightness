@@ -1,23 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace SetBrightness
 {
     public partial class TabPageTemplate : UserControl
     {
-        private Monitor _monitor;
+        private readonly Monitor _monitor;
 
-        public TabPageTemplate(Monitor monitor)
+        public TabPageTemplate(Monitor monitor, string name)
         {
             InitializeComponent();
             _monitor = monitor;
+            Name = name;
+            PreWork();
+        }
+
+        private void PreWork()
+        {
+            if (!_monitor.SupportContrast)
+            {
+                contrastTrackbar.Enabled = false;
+            }
+
+            brightLabel.DataBindings.Add("Text", brightTrackbar, "Value");
+            contrastLabel.DataBindings.Add("Text", contrastTrackbar, "Value");
+        }
+
+        private bool _useContrast;
+
+        public bool UseContrast
+        {
+            get { return _useContrast; }
+            set
+            {
+                if (!_monitor.SupportContrast)
+                {
+                    value = false;
+                }
+
+                contrastTrackbar.Enabled = value;
+                _useContrast = value;
+            }
+        }
+
+        public int Brightness
+        {
+            get { return _monitor.GetBrightness(); }
+            set { _monitor.SetBrightness(value); }
+        }
+
+        public int Contrast
+        {
+            get { return _monitor.GetContrast(); }
+            set { _monitor.SetContrast(value); }
         }
     }
 }
