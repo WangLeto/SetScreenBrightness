@@ -3,25 +3,36 @@ using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using SetBrightness.Properties;
+using Timer = System.Timers.Timer;
 
 namespace SetBrightness
 {
     public partial class TabForm : Form
     {
-        private string _monitorName = nameof(TabPageTemplate);
+        private const string MonitorName = nameof(TabPageTemplate);
         private readonly CheckManager _checkManager;
+
+        private readonly Timer _timer = new Timer(150);
+        private bool _canChangeVisible = true;
 
         public TabForm()
         {
             InitializeComponent();
             AddMonitor(new WmiMonitor(""));
+
             _checkManager = new CheckManager(this, contextMenuStrip);
+
+            _timer.Elapsed += (sender, args) =>
+            {
+                _canChangeVisible = true;
+                _timer.Stop();
+            };
         }
 
         private void AddMonitor(Monitor monitor)
         {
             var page = new TabPage(monitor.Name);
-            page.Controls.Add(new TabPageTemplate(monitor, _monitorName));
+            page.Controls.Add(new TabPageTemplate(monitor, MonitorName));
             tabControl.TabPages.Add(page);
         }
 
@@ -35,7 +46,7 @@ namespace SetBrightness
         private void quitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             notifyIcon.Visible = false;
-            Close();
+            Environment.Exit(0);
         }
 
         private bool _preventContextMenuStripClose;
@@ -73,17 +84,80 @@ namespace SetBrightness
             }
         }
 
+
         public void useContrastToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
             var tsmi = sender as ToolStripMenuItem;
             var useContrast = tsmi != null && tsmi.CheckState == CheckState.Checked;
 
+            // edit setting file
             CheckManager.CheckUseContrast(useContrast);
 
+            // set form height
+            AdjustHeight(useContrast);
+
+            // set tabpage enable
             foreach (TabPage page in tabControl.TabPages)
             {
-                ((TabPageTemplate) page.Controls[_monitorName]).UseContrast = useContrast;
+                ((TabPageTemplate) page.Controls[MonitorName]).UseContrast = useContrast;
             }
+        }
+
+        private const int TallHeight = 137;
+        private const int LowHeight = 86;
+
+        public void AdjustHeight(bool useContrast)
+        {
+            var height = useContrast ? TallHeight : LowHeight;
+            Height = height;
+            tabControl.Height = height - 1;
+        }
+
+
+        private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (_canChangeVisible && e.Button == MouseButtons.Left)
+            {
+                Visible = !Visible;
+            }
+        }
+
+        private void TabForm_Deactivate(object sender, EventArgs e)
+        {
+            if (!Visible)
+            {
+                return;
+            }
+
+            _canChangeVisible = false;
+            _timer.Start();
+            Visible = false;
+        }
+
+        private void TabForm_VisibleChanged(object sender, EventArgs e)
+        {
+            if (Visible)
+            {
+                // todo update track bar
+
+                RelocateForm();
+            }
+        }
+
+        private void RelocateForm(bool notUseCursorPos = false)
+        {
+            var screen = Screen.FromHandle(Handle);
+
+            var left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
+            var leftByCursor = Cursor.Position.X - Width / 2;
+            Left = left;
+            if (!notUseCursorPos)
+            {
+                Left = Math.Min(left, leftByCursor);
+            }
+
+            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 5;
+            Activate();
         }
     }
 
@@ -110,6 +184,7 @@ namespace SetBrightness
 
             _autoStartMenuItem.Checked = _regedit.IsAutoStart;
             _useContrastMenuItem.Checked = SettingManager.UseContrast;
+            _form.AdjustHeight(SettingManager.UseContrast);
 
             _autoStartMenuItem.CheckStateChanged += _form.autoStartToolStripMenuItem_CheckStateChanged;
             _useContrastMenuItem.CheckStateChanged += _form.useContrastToolStripMenuItem_CheckStateChanged;

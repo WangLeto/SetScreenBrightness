@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Drawing;
+using System.Windows.Forms;
 
 namespace SetBrightness
 {
@@ -19,6 +20,12 @@ namespace SetBrightness
             if (!_monitor.SupportContrast)
             {
                 contrastTrackbar.Enabled = false;
+
+                var right = contrastNameLabel.Right;
+                contrastNameLabel.Text += "(不支持)";
+                contrastNameLabel.Left = right - contrastNameLabel.Width;
+                contrastNameLabel.ForeColor = Color.DarkGray;
+                contrastLabel.ForeColor = Color.DarkGray;
             }
 
             brightLabel.DataBindings.Add("Text", brightTrackbar, "Value");

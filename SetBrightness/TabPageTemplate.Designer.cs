@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.brightnessNameLabel = new System.Windows.Forms.Label();
+            this.contrastNameLabel = new System.Windows.Forms.Label();
             this.brightTrackbar = new System.Windows.Forms.TrackBar();
             this.contrastTrackbar = new System.Windows.Forms.TrackBar();
             this.contrastLabel = new System.Windows.Forms.Label();
@@ -38,23 +38,25 @@
             ((System.ComponentModel.ISupportInitialize)(this.contrastTrackbar)).BeginInit();
             this.SuspendLayout();
             // 
-            // label1
+            // brightnessNameLabel
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 4);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(32, 17);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "亮度";
+            this.brightnessNameLabel.AutoSize = true;
+            this.brightnessNameLabel.Location = new System.Drawing.Point(332, 4);
+            this.brightnessNameLabel.Name = "brightnessNameLabel";
+            this.brightnessNameLabel.Size = new System.Drawing.Size(32, 17);
+            this.brightnessNameLabel.TabIndex = 0;
+            this.brightnessNameLabel.Text = "亮度";
+            this.brightnessNameLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
-            // label2
+            // contrastNameLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 63);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(44, 17);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "对比度";
+            this.contrastNameLabel.AutoSize = true;
+            this.contrastNameLabel.Location = new System.Drawing.Point(320, 57);
+            this.contrastNameLabel.Name = "contrastNameLabel";
+            this.contrastNameLabel.Size = new System.Drawing.Size(44, 17);
+            this.contrastNameLabel.TabIndex = 0;
+            this.contrastNameLabel.Text = "对比度";
+            this.contrastNameLabel.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // brightTrackbar
             // 
@@ -70,7 +72,7 @@
             // contrastTrackbar
             // 
             this.contrastTrackbar.AutoSize = false;
-            this.contrastTrackbar.Location = new System.Drawing.Point(0, 83);
+            this.contrastTrackbar.Location = new System.Drawing.Point(0, 77);
             this.contrastTrackbar.Maximum = 100;
             this.contrastTrackbar.Name = "contrastTrackbar";
             this.contrastTrackbar.Size = new System.Drawing.Size(370, 30);
@@ -81,7 +83,7 @@
             // contrastLabel
             // 
             this.contrastLabel.AutoSize = true;
-            this.contrastLabel.Location = new System.Drawing.Point(317, 63);
+            this.contrastLabel.Location = new System.Drawing.Point(10, 57);
             this.contrastLabel.Name = "contrastLabel";
             this.contrastLabel.Size = new System.Drawing.Size(43, 17);
             this.contrastLabel.TabIndex = 2;
@@ -90,7 +92,7 @@
             // brightLabel
             // 
             this.brightLabel.AutoSize = true;
-            this.brightLabel.Location = new System.Drawing.Point(317, 4);
+            this.brightLabel.Location = new System.Drawing.Point(10, 4);
             this.brightLabel.Name = "brightLabel";
             this.brightLabel.Size = new System.Drawing.Size(43, 17);
             this.brightLabel.TabIndex = 2;
@@ -105,12 +107,12 @@
             this.Controls.Add(this.contrastLabel);
             this.Controls.Add(this.contrastTrackbar);
             this.Controls.Add(this.brightTrackbar);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.contrastNameLabel);
+            this.Controls.Add(this.brightnessNameLabel);
             this.Font = new System.Drawing.Font("微软雅黑", 9F);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "TabPageTemplate";
-            this.Size = new System.Drawing.Size(380, 120);
+            this.Size = new System.Drawing.Size(380, 110);
             ((System.ComponentModel.ISupportInitialize)(this.brightTrackbar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.contrastTrackbar)).EndInit();
             this.ResumeLayout(false);
@@ -120,8 +122,8 @@
 
         #endregion
 
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label brightnessNameLabel;
+        private System.Windows.Forms.Label contrastNameLabel;
         private System.Windows.Forms.TrackBar brightTrackbar;
         private System.Windows.Forms.TrackBar contrastTrackbar;
         private System.Windows.Forms.Label contrastLabel;

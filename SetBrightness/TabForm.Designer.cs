@@ -45,7 +45,7 @@
             this.tabControl.Location = new System.Drawing.Point(1, 1);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(380, 150);
+            this.tabControl.Size = new System.Drawing.Size(380, 136);
             this.tabControl.TabIndex = 0;
             // 
             // notifyIcon
@@ -54,6 +54,7 @@
             this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
             this.notifyIcon.Text = "亮度调节";
             this.notifyIcon.Visible = true;
+            this.notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseClick);
             // 
             // contextMenuStrip
             // 
@@ -88,7 +89,7 @@
             // 
             this.rescanToolStripMenuItem.Name = "rescanToolStripMenuItem";
             this.rescanToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.rescanToolStripMenuItem.Text = "重新扫描屏幕";
+            this.rescanToolStripMenuItem.Text = "重新检测屏幕";
             // 
             // quitToolStripMenuItem
             // 
@@ -101,7 +102,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(382, 152);
+            this.ClientSize = new System.Drawing.Size(381, 137);
             this.Controls.Add(this.tabControl);
             this.Font = new System.Drawing.Font("微软雅黑", 9F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
@@ -110,6 +111,8 @@
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.Text = "TabForm";
+            this.Deactivate += new System.EventHandler(this.TabForm_Deactivate);
+            this.VisibleChanged += new System.EventHandler(this.TabForm_VisibleChanged);
             this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
 
