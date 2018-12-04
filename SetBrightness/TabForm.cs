@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using SetBrightness.Properties;
@@ -27,6 +28,8 @@ namespace SetBrightness
                 _canChangeVisible = true;
                 _timer.Stop();
             };
+
+            ChangeWindowMessageFilter(WmCopydata, 1);
         }
 
         private void AddMonitor(Monitor monitor)
@@ -138,20 +141,19 @@ namespace SetBrightness
         {
             if (Visible)
             {
-                // todo update track bar
-
+                UpdateTrackbarValue();
                 RelocateForm();
             }
         }
 
-        private void RelocateForm(bool notUseCursorPos = false)
+        private void RelocateForm(bool useCursorPos = true)
         {
             var screen = Screen.FromHandle(Handle);
 
             var left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
             var leftByCursor = Cursor.Position.X - Width / 2;
             Left = left;
-            if (!notUseCursorPos)
+            if (!useCursorPos)
             {
                 Left = Math.Min(left, leftByCursor);
             }
@@ -159,6 +161,47 @@ namespace SetBrightness
             Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 5;
             Activate();
         }
+
+        private void UpdateTrackbarValue()
+        {
+            // todo
+        }
+
+        #region 重复打开
+
+        private const int WmCopydata = 0x004A;
+
+        [DllImport("user32")]
+        private static extern bool ChangeWindowMessageFilter(uint msg, int flags);
+
+        protected override void DefWndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case WmCopydata:
+                    var mystr = new MessageSender.CopyDataStruct();
+                    var mytype = mystr.GetType();
+                    mystr = (MessageSender.CopyDataStruct) m.GetLParam(mytype);
+                    if (mystr.LpData == MessageSender.Msg)
+                    {
+                        notifyIcon.ShowBalloonTip(1500, "运行中", Application.ProductName + "已在运行", ToolTipIcon.Info);
+
+                        UpdateTrackbarValue();
+                        RelocateForm(false);
+
+                        VisibleChanged -= TabForm_VisibleChanged;
+                        Visible = true;
+                        VisibleChanged += TabForm_VisibleChanged;
+                    }
+
+                    break;
+                default:
+                    base.DefWndProc(ref m);
+                    break;
+            }
+        }
+
+        #endregion
     }
 
     internal class CheckManager
