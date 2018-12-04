@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -7,11 +8,13 @@ namespace SetBrightness
     public partial class TabPageTemplate : UserControl
     {
         private readonly Monitor _monitor;
+        private readonly MonitorsManager _monitorsManager;
 
-        public TabPageTemplate(Monitor monitor, string name)
+        public TabPageTemplate(Monitor monitor, string name, MonitorsManager monitorsManager)
         {
             InitializeComponent();
             _monitor = monitor;
+            _monitorsManager = monitorsManager;
             Name = name;
             PreWork();
         }
@@ -23,7 +26,7 @@ namespace SetBrightness
                 contrastTrackbar.Enabled = false;
 
                 var right = contrastNameLabel.Right;
-                contrastNameLabel.Text += "(不支持)";
+                contrastNameLabel.Text += @"(不支持)";
                 contrastNameLabel.Left = right - contrastNameLabel.Width;
                 contrastNameLabel.ForeColor = Color.DarkGray;
                 contrastLabel.ForeColor = Color.DarkGray;
@@ -36,6 +39,8 @@ namespace SetBrightness
             contrastTrackbar.ValueChanged += (sender, args) => Contrast = contrastTrackbar.Value;
         }
 
+        #region use contrast ui modify
+        
         private bool _useContrast;
 
         public bool UseContrast
@@ -53,12 +58,23 @@ namespace SetBrightness
             }
         }
 
+        #endregion
+
         public int Brightness
         {
             get
             {
-                // todo catch exception and reload tab pages
-                return _monitor.GetBrightness();
+                try
+                {
+                    return _monitor.GetBrightness();
+                }
+                catch (InvalidMonitorException e)
+                {
+                    _monitorsManager.RefreshMonitors();
+                    Debug.WriteLine(e);
+                }
+
+                return 0;
             }
             set
             {
@@ -109,9 +125,22 @@ namespace SetBrightness
 
         public int BrightnessMin => 0;
 
-        public int Contrast
+        private int Contrast
         {
-            get { return _monitor.GetContrast(); }
+            get
+            {
+                try
+                {
+                    return _monitor.GetContrast();
+                }
+                catch (InvalidMonitorException e)
+                {
+                    _monitorsManager.RefreshMonitors();
+                    Debug.WriteLine(e);
+                }
+
+                return 0;
+            }
             set
             {
                 var thread = new Thread(new SetTrackBarThreadSafe(value, this, contrastTrackbar).Set);

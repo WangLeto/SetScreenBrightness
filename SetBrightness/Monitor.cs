@@ -1,4 +1,6 @@
-﻿namespace SetBrightness
+﻿using System;
+
+namespace SetBrightness
 {
     public abstract class Monitor
     {
@@ -15,5 +17,9 @@
         public abstract int GetBrightness();
         public abstract void SetContrast(int contrast);
         public abstract int GetContrast();
+    }
+
+    public class InvalidMonitorException : Exception
+    {
     }
 }

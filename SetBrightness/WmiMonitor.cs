@@ -27,6 +27,7 @@ namespace SetBrightness
 
         public override void SetBrightness(int brightness)
         {
+            bool succeed = false;
             using (var searcher = GetBrightnessSearcher("WmiMonitorBrightnessMethods"))
             using (var instances = searcher.Get())
             {
@@ -37,15 +38,21 @@ namespace SetBrightness
                         continue;
                     }
 
+                    succeed = true;
                     ((ManagementObject) instance).InvokeMethod("WmiSetBrightness", new object[]
                     {
                         (uint) 2, (byte) brightness
                     });
                 }
             }
+
+            if (!succeed)
+            {
+                throw new WmiMonitorInvalidException();
+            }
         }
 
-        private ManagementObjectSearcher GetBrightnessSearcher(string queryStr)
+        private static ManagementObjectSearcher GetBrightnessSearcher(string queryStr)
         {
             var scope = new ManagementScope("root\\WMI");
             var query = new SelectQuery(queryStr);
@@ -61,6 +68,7 @@ namespace SetBrightness
 
         private WmiMonitorBrightnessClass GetBrightnessInfo()
         {
+            bool succeed = false;
             using (var searcher = GetBrightnessSearcher("WmiMonitorBrightness"))
             using (var instances = searcher.Get())
             {
@@ -71,12 +79,18 @@ namespace SetBrightness
                         continue;
                     }
 
+                    succeed = true;
                     _wmiMonitorBrightness.Active = (bool) instance["Active"];
                     _wmiMonitorBrightness.CurrentBrightness = (byte) instance["CurrentBrightness"];
                     _wmiMonitorBrightness.InstanceName = (string) instance["InstanceName"];
                     _wmiMonitorBrightness.Level = (byte[]) instance["Level"];
                     _wmiMonitorBrightness.Levels = (uint) instance["Levels"];
                 }
+            }
+
+            if (!succeed)
+            {
+                throw new WmiMonitorInvalidException();
             }
 
             return _wmiMonitorBrightness;
@@ -97,6 +111,14 @@ namespace SetBrightness
             // deviceInstanceId     DISPLAY\SDC4C48\4&2e490a7&0&UID265988
             string instanceName = (string) instance["InstanceName"];
             return _instanceId.Contains(instanceName);
+        }
+    }
+
+    public class WmiMonitorInvalidException : InvalidMonitorException
+    {
+        public override string ToString()
+        {
+            return "WmiMonitorInvalidException";
         }
     }
 }

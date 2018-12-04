@@ -20,7 +20,7 @@ namespace SetBrightness
         private bool _canChangeVisible = true;
 
         private readonly MouseHook _mouseHook = new MouseHook();
-        private MonitorsManager _monitorsManager;
+        private readonly MonitorsManager _monitorsManager;
 
         public TabForm()
         {
@@ -40,12 +40,13 @@ namespace SetBrightness
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.Install();
             Application.ApplicationExit += Application_ApplicationExit;
+            _monitorsManager.RefreshMonitors();
         }
 
         private void AddPage(Monitor monitor)
         {
             var page = new TabPage(monitor.Name);
-            page.Controls.Add(new TabPageTemplate(monitor, PageControlName));
+            page.Controls.Add(new TabPageTemplate(monitor, PageControlName, _monitorsManager));
             tabControl.TabPages.Add(page);
         }
 
@@ -192,6 +193,7 @@ namespace SetBrightness
 
         private void UpdateTrackbarValue()
         {
+            // todo ddc/ci monitor has got some terrible delay
             ((TabPageTemplate) tabControl.SelectedTab?.Controls[PageControlName])?.UpdateTrackBars();
         }
 
@@ -371,7 +373,7 @@ namespace SetBrightness
         }
     }
 
-    internal class MonitorsManager
+    public class MonitorsManager
     {
         public delegate void AddMonitorDelegate(Monitor monitor);
 
@@ -385,10 +387,9 @@ namespace SetBrightness
         {
             _addMonitorDelegate = addMonitorDelegate;
             _clearPagesDelegate = clearPagesDelegate;
-            RefreshMonitors();
         }
 
-        private void AddMonitorsToPages()
+        private void MapMonitorsToPages()
         {
             foreach (var monitor in _monitors)
             {
@@ -401,11 +402,12 @@ namespace SetBrightness
             _clearPagesDelegate();
             _monitors.Clear();
 
+            // todo mouse werid stuck
             _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles());
             // todo use a manager class
             _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
 
-            AddMonitorsToPages();
+            MapMonitorsToPages();
         }
     }
 }

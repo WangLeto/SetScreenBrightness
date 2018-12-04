@@ -161,7 +161,11 @@ namespace SetBrightness
         }
     }
 
-    internal class HighLevelPhysicalHandleInvalidException : Exception
+    internal class HighLevelPhysicalHandleInvalidException : InvalidMonitorException
     {
+        public override string ToString()
+        {
+            return "HighLevelPhysicalHandleInvalidException";
+        }
     }
 }
