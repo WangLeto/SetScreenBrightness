@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -19,11 +20,12 @@ namespace SetBrightness
         private bool _canChangeVisible = true;
 
         private readonly MouseHook _mouseHook = new MouseHook();
+        private MonitorsManager _monitorsManager;
 
         public TabForm()
         {
             InitializeComponent();
-            AddMonitor(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
+            _monitorsManager = new MonitorsManager(AddPage, ClearPages);
 
             _checkManager = new CheckManager(this, contextMenuStrip);
 
@@ -38,16 +40,18 @@ namespace SetBrightness
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.Install();
             Application.ApplicationExit += Application_ApplicationExit;
-
-            // test part
-            ((TabPageTemplate) tabControl.TabPages[0].Controls[PageControlName]).Brightness = 30;
         }
 
-        private void AddMonitor(Monitor monitor)
+        private void AddPage(Monitor monitor)
         {
             var page = new TabPage(monitor.Name);
             page.Controls.Add(new TabPageTemplate(monitor, PageControlName));
             tabControl.TabPages.Add(page);
+        }
+
+        private void ClearPages()
+        {
+            tabControl.TabPages.Clear();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -62,6 +66,8 @@ namespace SetBrightness
             notifyIcon.Visible = false;
             Environment.Exit(0);
         }
+
+        #region prevent contextmenustrip close on checking
 
         private bool _preventContextMenuStripClose;
 
@@ -85,6 +91,8 @@ namespace SetBrightness
             e.Cancel = true;
             _preventContextMenuStripClose = false;
         }
+
+        #endregion
 
         public void autoStartToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
@@ -116,6 +124,8 @@ namespace SetBrightness
             }
         }
 
+        #region adjust heigth depend on whether use contrast
+
         private const int TallHeight = 137;
         private const int LowHeight = 86;
 
@@ -125,6 +135,8 @@ namespace SetBrightness
             Height = height;
             tabControl.Height = height - 1;
         }
+
+        #endregion
 
         private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
         {
@@ -148,11 +160,13 @@ namespace SetBrightness
 
         private void TabForm_VisibleChanged(object sender, EventArgs e)
         {
-            if (Visible)
+            if (!Visible)
             {
-                UpdateTrackbarValue();
-                RelocateForm();
+                return;
             }
+
+            UpdateTrackbarValue();
+            RelocateForm();
         }
 
         private void RelocateForm(bool useCursorPos = true)
@@ -171,9 +185,14 @@ namespace SetBrightness
             Activate();
         }
 
+        private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateTrackbarValue();
+        }
+
         private void UpdateTrackbarValue()
         {
-            // todo
+            ((TabPageTemplate) tabControl.SelectedTab?.Controls[PageControlName])?.UpdateTrackBars();
         }
 
         #region handle application start twice
@@ -260,6 +279,11 @@ namespace SetBrightness
         }
 
         #endregion
+
+        private void rescanToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _monitorsManager.RefreshMonitors();
+        }
     }
 
     internal class CheckManager
@@ -344,6 +368,44 @@ namespace SetBrightness
                 Settings.Default.use_contrast = value;
                 Settings.Default.Save();
             }
+        }
+    }
+
+    internal class MonitorsManager
+    {
+        public delegate void AddMonitorDelegate(Monitor monitor);
+
+        public delegate void ClearPagesDelegate();
+
+        private readonly AddMonitorDelegate _addMonitorDelegate;
+        private readonly ClearPagesDelegate _clearPagesDelegate;
+        private readonly List<Monitor> _monitors = new List<Monitor>();
+
+        public MonitorsManager(AddMonitorDelegate addMonitorDelegate, ClearPagesDelegate clearPagesDelegate)
+        {
+            _addMonitorDelegate = addMonitorDelegate;
+            _clearPagesDelegate = clearPagesDelegate;
+            RefreshMonitors();
+        }
+
+        private void AddMonitorsToPages()
+        {
+            foreach (var monitor in _monitors)
+            {
+                _addMonitorDelegate(monitor);
+            }
+        }
+
+        public void RefreshMonitors()
+        {
+            _clearPagesDelegate();
+            _monitors.Clear();
+
+            _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles());
+            // todo use a manager class
+            _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
+
+            AddMonitorsToPages();
         }
     }
 }

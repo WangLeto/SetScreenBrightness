@@ -55,7 +55,11 @@ namespace SetBrightness
 
         public int Brightness
         {
-            get { return _monitor.GetBrightness(); }
+            get
+            {
+                // todo catch exception and reload tab pages
+                return _monitor.GetBrightness();
+            }
             set
             {
                 // windows form control thread-safe call
@@ -115,6 +119,12 @@ namespace SetBrightness
 
                 _monitor.SetContrast(value);
             }
+        }
+
+        public void UpdateTrackBars()
+        {
+            brightTrackbar.Value = Brightness;
+            contrastTrackbar.Value = Contrast;
         }
     }
 }

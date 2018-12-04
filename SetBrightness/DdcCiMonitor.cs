@@ -29,7 +29,6 @@ namespace SetBrightness
         private const byte VcpLuminanceCode = 0x10;
         private const byte VcpContrastCode = 0x12;
 
-        // Todo
         private bool _isLowLevel;
 
         private readonly PhysicalMonitorHandle _physicalMonitorHandle;
@@ -67,7 +66,7 @@ namespace SetBrightness
 
         private bool TestLowLevelCapabilities()
         {
-            // todo 
+            // todo test low level
             return false;
         }
 

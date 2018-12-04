@@ -30,14 +30,16 @@ namespace SetBrightness
         /// 使用 ddc/ic 协议管理的显示器句柄
         /// </summary>
         /// <returns></returns>
-        public static List<DdcCiMonitor> GetMonitorHandles()
+        public static IEnumerable<DdcCiMonitor> GetMonitorHandles()
         {
             if (!EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumRroc, IntPtr.Zero))
             {
                 Debug.WriteLine("EnumDisplayMonitors Fails");
             }
 
-            return DdcCiMonitors;
+            var array = DdcCiMonitors.ToArray();
+            DdcCiMonitors.Clear();
+            return array;
         }
 
         private static bool MonitorEnumRroc(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData)

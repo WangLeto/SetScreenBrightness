@@ -88,7 +88,7 @@ namespace SetBrightness
 
         public override int GetContrast()
         {
-            return -1;
+            return 0;
         }
 
         private bool RightDevice(ManagementBaseObject instance)

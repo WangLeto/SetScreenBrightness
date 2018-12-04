@@ -47,6 +47,7 @@
             this.tabControl.SelectedIndex = 0;
             this.tabControl.Size = new System.Drawing.Size(380, 136);
             this.tabControl.TabIndex = 0;
+            this.tabControl.SelectedIndexChanged += new System.EventHandler(this.tabControl_SelectedIndexChanged);
             // 
             // notifyIcon
             // 
@@ -90,6 +91,7 @@
             this.rescanToolStripMenuItem.Name = "rescanToolStripMenuItem";
             this.rescanToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.rescanToolStripMenuItem.Text = "重新检测屏幕";
+            this.rescanToolStripMenuItem.Click += new System.EventHandler(this.rescanToolStripMenuItem_Click);
             // 
             // quitToolStripMenuItem
             // 
