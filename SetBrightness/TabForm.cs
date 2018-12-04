@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using SetBrightness.Properties;
@@ -10,16 +12,18 @@ namespace SetBrightness
 {
     public partial class TabForm : Form
     {
-        private const string MonitorName = nameof(TabPageTemplate);
+        private const string PageControlName = nameof(TabPageTemplate);
         private readonly CheckManager _checkManager;
 
         private readonly Timer _timer = new Timer(150);
         private bool _canChangeVisible = true;
 
+        private readonly MouseHook _mouseHook = new MouseHook();
+
         public TabForm()
         {
             InitializeComponent();
-            AddMonitor(new WmiMonitor(""));
+            AddMonitor(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
 
             _checkManager = new CheckManager(this, contextMenuStrip);
 
@@ -30,12 +34,19 @@ namespace SetBrightness
             };
 
             ChangeWindowMessageFilter(WmCopydata, 1);
+
+            _mouseHook.MouseWheel += _mouseHook_MouseWheel;
+            _mouseHook.Install();
+            Application.ApplicationExit += Application_ApplicationExit;
+
+            // test part
+            ((TabPageTemplate) tabControl.TabPages[0].Controls[PageControlName]).Brightness = 30;
         }
 
         private void AddMonitor(Monitor monitor)
         {
             var page = new TabPage(monitor.Name);
-            page.Controls.Add(new TabPageTemplate(monitor, MonitorName));
+            page.Controls.Add(new TabPageTemplate(monitor, PageControlName));
             tabControl.TabPages.Add(page);
         }
 
@@ -87,7 +98,6 @@ namespace SetBrightness
             }
         }
 
-
         public void useContrastToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
             var tsmi = sender as ToolStripMenuItem;
@@ -102,7 +112,7 @@ namespace SetBrightness
             // set tabpage enable
             foreach (TabPage page in tabControl.TabPages)
             {
-                ((TabPageTemplate) page.Controls[MonitorName]).UseContrast = useContrast;
+                ((TabPageTemplate) page.Controls[PageControlName]).UseContrast = useContrast;
             }
         }
 
@@ -115,7 +125,6 @@ namespace SetBrightness
             Height = height;
             tabControl.Height = height - 1;
         }
-
 
         private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
         {
@@ -167,7 +176,7 @@ namespace SetBrightness
             // todo
         }
 
-        #region 重复打开
+        #region handle application start twice
 
         private const int WmCopydata = 0x004A;
 
@@ -198,6 +207,55 @@ namespace SetBrightness
                 default:
                     base.DefWndProc(ref m);
                     break;
+            }
+        }
+
+        #endregion
+
+        #region global mouse wheel hook, directly set brightness
+
+        private void Application_ApplicationExit(object sender, EventArgs e)
+        {
+            _mouseHook.Uninstall();
+        }
+
+        private void _mouseHook_MouseWheel(MouseHook.Msllhookstruct mouseStruct, out bool @continue)
+        {
+            if (!Visible)
+            {
+                @continue = true;
+                return;
+            }
+
+            var delta = (short) (mouseStruct.mouseData >> 16);
+            var tabTemplate = (TabPageTemplate) tabControl.SelectedTab.Controls[PageControlName];
+
+            // call COM in global hook lead to disconnected context
+            var thread = new Thread(new ThreadWrap(delta, tabTemplate).ThreadChild);
+            thread.Start();
+
+            @continue = false;
+        }
+
+        private class ThreadWrap
+        {
+            private const int WheelChange = 5;
+            private readonly int _delta;
+            private readonly TabPageTemplate _tabTemplate;
+
+            public ThreadWrap(int delta, TabPageTemplate template)
+            {
+                _delta = delta;
+                _tabTemplate = template;
+            }
+
+            public void ThreadChild()
+            {
+                var brightness = _tabTemplate.Brightness;
+                var des = _delta > 0
+                    ? Math.Min(brightness + WheelChange, _tabTemplate.BrightnessMax)
+                    : Math.Max(brightness - WheelChange, _tabTemplate.BrightnessMin);
+                _tabTemplate.Brightness = des;
             }
         }
 
