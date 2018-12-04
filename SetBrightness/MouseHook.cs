@@ -80,9 +80,9 @@ namespace SetBrightness
                     case MouseMessages.WmMouseWheel:
                         if (MouseWheel != null)
                         {
-                            bool goOn;
-                            MouseWheel(msllhookstruct, out goOn);
-                            if (!goOn)
+                            bool @continue;
+                            MouseWheel(msllhookstruct, out @continue);
+                            if (!@continue)
                             {
                                 return 1;
                             }
@@ -129,7 +129,7 @@ namespace SetBrightness
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool UnhookWindowsHookEx(IntPtr hhk);
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern int CallNextHookEx(IntPtr hhk, int nCode, int wParam, IntPtr lParam);

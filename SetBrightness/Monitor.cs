@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SetBrightness
+﻿namespace SetBrightness
 {
     public abstract class Monitor
     {

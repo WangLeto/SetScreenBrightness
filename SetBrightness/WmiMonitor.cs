@@ -6,7 +6,7 @@ namespace SetBrightness
     internal class WmiMonitor : Monitor
     {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct WmiMonitorBrightnessClass
+        private struct WmiMonitorBrightnessClass
         {
             public bool Active;
             public byte CurrentBrightness;
@@ -27,8 +27,8 @@ namespace SetBrightness
 
         public override void SetBrightness(int brightness)
         {
-            using (ManagementObjectSearcher searcher = GetBrightnessSearcher("WmiMonitorBrightnessMethods"))
-            using (ManagementObjectCollection instances = searcher.Get())
+            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightnessMethods"))
+            using (var instances = searcher.Get())
             {
                 foreach (var instance in instances)
                 {
@@ -55,10 +55,11 @@ namespace SetBrightness
 
         public override int GetBrightness()
         {
+            _wmiMonitorBrightness = GetBrightnessInfo();
             return _wmiMonitorBrightness.CurrentBrightness;
         }
 
-        public WmiMonitorBrightnessClass GetBrightnessInfo()
+        private WmiMonitorBrightnessClass GetBrightnessInfo()
         {
             using (var searcher = GetBrightnessSearcher("WmiMonitorBrightness"))
             using (var instances = searcher.Get())

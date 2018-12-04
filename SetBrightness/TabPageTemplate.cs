@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SetBrightness
@@ -30,6 +31,9 @@ namespace SetBrightness
 
             brightLabel.DataBindings.Add("Text", brightTrackbar, "Value");
             contrastLabel.DataBindings.Add("Text", contrastTrackbar, "Value");
+
+            brightTrackbar.ValueChanged += (sender, args) => Brightness = brightTrackbar.Value;
+            contrastTrackbar.ValueChanged += (sender, args) => Contrast = contrastTrackbar.Value;
         }
 
         private bool _useContrast;
@@ -52,13 +56,65 @@ namespace SetBrightness
         public int Brightness
         {
             get { return _monitor.GetBrightness(); }
-            set { _monitor.SetBrightness(value); }
+            set
+            {
+                // windows form control thread-safe call
+                var thread = new Thread(new SetTrackBarThreadSafe(value, this, brightTrackbar).Set);
+                thread.Start();
+
+                _monitor.SetBrightness(value);
+            }
         }
+
+        private class SetTrackBarThreadSafe
+        {
+            private readonly int _value;
+            private readonly TabPageTemplate _tabPageTemplate;
+            private readonly TrackBar _trackBar;
+
+            public SetTrackBarThreadSafe(int value, TabPageTemplate tabPageTemplate, TrackBar trackBar)
+            {
+                _value = value;
+                _tabPageTemplate = tabPageTemplate;
+                _trackBar = trackBar;
+            }
+
+            private delegate void SetDelegate();
+
+            public void Set()
+            {
+                if (_trackBar.InvokeRequired)
+                {
+                    var @delegate = new SetDelegate(Set);
+                    _tabPageTemplate.Invoke(@delegate);
+                }
+                else
+                {
+                    if (_trackBar.Value == _value)
+                    {
+                        return;
+                    }
+
+                    _trackBar.Value = _value;
+                }
+            }
+        }
+
+        // todo? read brightness bound
+        public int BrightnessMax => 100;
+
+        public int BrightnessMin => 0;
 
         public int Contrast
         {
             get { return _monitor.GetContrast(); }
-            set { _monitor.SetContrast(value); }
+            set
+            {
+                var thread = new Thread(new SetTrackBarThreadSafe(value, this, contrastTrackbar).Set);
+                thread.Start();
+
+                _monitor.SetContrast(value);
+            }
         }
     }
 }
