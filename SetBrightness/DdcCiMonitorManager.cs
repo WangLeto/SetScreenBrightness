@@ -7,22 +7,21 @@ using System.Runtime.InteropServices;
 namespace SetBrightness
 {
     // DDC/CI：https://docs.microsoft.com/en-us/windows/desktop/Monitor/monitor-configuration
-    static class DdcCiMonitorManager
+    internal static class DdcCiMonitorManager
     {
         [DllImport("User32.dll")]
         private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum,
             IntPtr dwData);
 
-        [return: MarshalAs(UnmanagedType.Bool)]
         private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref Rect lprcMonitor, IntPtr dwData);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct Rect
         {
-            public int left;
-            public int top;
-            public int right;
-            public int bottom;
+            private readonly int left;
+            private readonly int top;
+            private readonly int right;
+            private readonly int bottom;
         }
 
         private static readonly List<DdcCiMonitor> DdcCiMonitors = new List<DdcCiMonitor>();
@@ -65,30 +64,31 @@ namespace SetBrightness
         #region 获取物理显示器句柄
 
         [DllImport("dxva2.dll", EntryPoint = "GetNumberOfPhysicalMonitorsFromHMONITOR")]
-        public static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(
+        private static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(
             IntPtr hMonitor, ref uint pdwNumberOfPhysicalMonitors);
 
         [DllImport("dxva2.dll", EntryPoint = "GetPhysicalMonitorsFromHMONITOR")]
-        public static extern bool GetPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, uint dwPhysicalMonitorArraySize,
+        private static extern bool GetPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, uint dwPhysicalMonitorArraySize,
             [Out] PhysicalMonitor[] pPhysicalMonitorArray);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        public struct PhysicalMonitor
+        private struct PhysicalMonitor
         {
-            public IntPtr hPhysicalMonitor;
+            public readonly IntPtr hPhysicalMonitor;
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-            public readonly string szPhysicalMonitorDescription;
+            // not usable at all
+            private readonly string szPhysicalMonitorDescription;
         }
 
-        public static List<IntPtr> GetPhysicalMonitorHandle(IntPtr hMonitor)
+        private static IEnumerable<IntPtr> GetPhysicalMonitorHandle(IntPtr hMonitor)
         {
             uint monitorCount = 0;
             GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, ref monitorCount);
             var physicalMonitors = new PhysicalMonitor[monitorCount];
             GetPhysicalMonitorsFromHMONITOR(hMonitor, monitorCount, physicalMonitors);
 
-            return physicalMonitors.Select(physicalMonitor => physicalMonitor.hPhysicalMonitor).ToList();
+            return physicalMonitors.Select(physicalMonitor => physicalMonitor.hPhysicalMonitor);
         }
 
         #endregion

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using PhysicalMonitorHandle = System.IntPtr;
 
@@ -10,34 +9,30 @@ namespace SetBrightness
         // refer MCCS vcp codes: https://milek7.pl/ddcbacklight/mccs.pdf
 
         [DllImport("Dxva2.dll", SetLastError = true)]
-        private static extern bool SetVCPFeature(
-            PhysicalMonitorHandle hMonitor, byte bVcpCode, uint dwNewValue);
+        private static extern bool SetVCPFeature(PhysicalMonitorHandle hMonitor, byte bVcpCode, uint dwNewValue);
 
         [DllImport("Dxva2.dll")]
-        private static extern bool GetMonitorCapabilities(
-            PhysicalMonitorHandle hMonitor, out PdwMonitorCapabilitiesFlag pdwMonitorCapabilities,
+        private static extern bool GetMonitorCapabilities(PhysicalMonitorHandle hMonitor,
+            out PdwMonitorCapabilitiesFlag pdwMonitorCapabilities,
             out PdwSupportedColorTemperaturesFlag pdwSupportedColorTemperatures);
 
+        [DllImport("Dxva2.dll")]
+        private static extern bool GetVCPFeatureAndVCPFeatureReply(PhysicalMonitorHandle hMonitor, byte bVcpCode,
+            out LpmcVcpCodeType pvct, out uint pdwCurrentValue, out uint pdwMaximumValue);
 
-        [DllImport("dxva2.dll")]
-        public static extern bool SetMonitorContrast(IntPtr hMonitor, short brightness);
+        private enum LpmcVcpCodeType
+        {
+            McMomentary,
+            McSetParameter
+        }
 
-        [DllImport("dxva2.dll")]
-        public static extern bool SetMonitorBrightness(IntPtr hMonitor, short brightness);
-
-        private const byte LuminanceCode = 0x10;
-        private const byte ContrastCode = 0x12;
-
-        // https://docs.microsoft.com/en-us/windows/desktop/api/highlevelmonitorconfigurationapi/nf-highlevelmonitorconfigurationapi-getmonitorcapabilities
-        // 是否支持亮度、对比度方法 ↑
-
-        // https://docs.microsoft.com/en-us/windows/desktop/Monitor/using-the-high-level-monitor-configuration-functions#supported-functions
-        // A monitor might not support all of the monitor configuration functions. To find out which functions a monitor supports, call GetMonitorCapabilities.
+        private const byte VcpLuminanceCode = 0x10;
+        private const byte VcpContrastCode = 0x12;
 
         // Todo
         private bool _isLowLevel;
 
-        private readonly IntPtr _physicalMonitorHandle;
+        private readonly PhysicalMonitorHandle _physicalMonitorHandle;
 
         public DdcCiMonitor(IntPtr physicalMonitorHandle)
         {
@@ -57,53 +52,41 @@ namespace SetBrightness
 
             if (highFlag.HasFlag(PdwMonitorCapabilitiesFlag.McCapsBrightness))
             {
-                if (highFlag.HasFlag(PdwMonitorCapabilitiesFlag.McCapsContrast))
+                if (!highFlag.HasFlag(PdwMonitorCapabilitiesFlag.McCapsContrast))
                 {
-                    Debug.WriteLine("支持对比度");
-                    SupportContrast = true;
+                    return;
                 }
 
-                return;
+                SupportContrast = true;
             }
             else
             {
-                // todo: test low level capabilities
-                CanUse = false;
+                CanUse = TestLowLevelCapabilities();
             }
         }
 
-        // https://docs.microsoft.com/en-us/windows/desktop/monitor/using-the-high-level-monitor-configuration-functions#continuous-monitor-settings
-        // Most of the high-level monitor configuration functions control continuous monitor settings. For example, brightness and contrast are continuous settings.
-
-        public override void SetBrightness(int brightness)
+        private bool TestLowLevelCapabilities()
         {
-            if (!CanUse)
-            {
-                Debug.WriteLine("不支持的设备");
-                return;
-            }
-
-            RestrictValue(ref brightness);
-            if (_isLowLevel)
-            {
-                LowLevelSetBrightness(brightness);
-            }
-            else
-            {
-                HighLevelSetBrightness(brightness);
-            }
+            // todo 
+            return false;
         }
 
-        private void LowLevelSetBrightness(int brightness)
-        {
-            var succeed = SetVCPFeature(_physicalMonitorHandle, LuminanceCode, (byte) brightness);
-            Debug.WriteLine("颜色修改：" + succeed);
-        }
+        private delegate bool NativeHighLevelGet(PhysicalMonitorHandle hMonitor,
+            ref short min, ref short current, ref short max);
 
-        private void HighLevelSetBrightness(int brightness)
-        {
-            SetMonitorBrightness(_physicalMonitorHandle, (short) brightness);
-        }
+        [DllImport("dxva2.dll")]
+        private static extern bool GetMonitorBrightness(PhysicalMonitorHandle hMonitor,
+            ref short pdwMinimumBrightness, ref short pdwCurrentBrightness, ref short pdwMaximumBrightness);
+
+        [DllImport("dxva2.dll")]
+        private static extern bool SetMonitorBrightness(PhysicalMonitorHandle hMonitor, short brightness);
+
+        [DllImport("dxva2.dll")]
+        private static extern bool GetMonitorContrast(PhysicalMonitorHandle hMonitor, ref short pdwMinimumContrast,
+            ref short pdwCurrentContrast, ref short pdwMaximumContrast);
+
+        [DllImport("dxva2.dll")]
+        private static extern bool SetMonitorContrast(PhysicalMonitorHandle hMonitor, short brightness);
 
         private static void RestrictValue(ref int value)
         {
@@ -111,27 +94,75 @@ namespace SetBrightness
             value = Math.Min(100, value);
         }
 
-        public override int GetBrightness()
+        public override void SetBrightness(int brightness)
         {
-            throw new NotImplementedException();
+            RestrictValue(ref brightness);
+            if (_isLowLevel)
+            {
+                SetVCPFeature(_physicalMonitorHandle, VcpLuminanceCode, (byte) brightness);
+            }
+            else
+            {
+                SetMonitorBrightness(_physicalMonitorHandle, (short) brightness);
+            }
         }
 
         public override void SetContrast(int contrast)
         {
-            throw new NotImplementedException();
+            RestrictValue(ref contrast);
+            if (_isLowLevel)
+            {
+                SetVCPFeature(_physicalMonitorHandle, VcpContrastCode, (byte) contrast);
+            }
+            else
+            {
+                SetMonitorContrast(_physicalMonitorHandle, (short) contrast);
+            }
+        }
+
+        public override int GetBrightness()
+        {
+            return _isLowLevel
+                ? LowLevelGetCurrentValue(VcpLuminanceCode)
+                : HighLevelGetCurrentValue(GetMonitorBrightness);
         }
 
         public override int GetContrast()
         {
-            throw new NotImplementedException();
+            return _isLowLevel
+                ? LowLevelGetCurrentValue(VcpContrastCode)
+                : HighLevelGetCurrentValue(GetMonitorContrast);
+        }
+
+        private int LowLevelGetCurrentValue(byte code)
+        {
+            LpmcVcpCodeType pvct;
+            uint currentValue, max;
+            GetVCPFeatureAndVCPFeatureReply(_physicalMonitorHandle, code, out pvct, out currentValue, out max);
+            return (int) currentValue;
+        }
+
+        private int HighLevelGetCurrentValue(NativeHighLevelGet func)
+        {
+            var values = new short[3];
+            if (!func(_physicalMonitorHandle, ref values[0], ref values[1], ref values[2]))
+            {
+                throw new HighLevelPhysicalHandleInvalidException();
+            }
+
+            return values[1];
         }
 
         [DllImport("Dxva2.dll")]
-        public static extern bool DestroyPhysicalMonitor(IntPtr hMonitor);
+        private static extern bool DestroyPhysicalMonitor(IntPtr hMonitor);
 
         ~DdcCiMonitor()
         {
             DestroyPhysicalMonitor(_physicalMonitorHandle);
         }
+    }
+
+    internal class HighLevelPhysicalHandleInvalidException : Exception
+    {
     }
 }
