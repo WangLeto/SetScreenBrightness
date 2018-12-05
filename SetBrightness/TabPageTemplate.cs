@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SetBrightness
@@ -37,6 +39,7 @@ namespace SetBrightness
             brightLabel.DataBindings.Add("Text", brightTrackbar, "Value");
             contrastLabel.DataBindings.Add("Text", contrastTrackbar, "Value");
 
+            // todo use background work threads and make earlier thread cancelable
             brightTrackbar.ValueChanged += (sender, e) =>
             {
                 var value = brightTrackbar.Value;
@@ -90,12 +93,13 @@ namespace SetBrightness
 
         public int BrightnessMin => 0;
 
-        public void UpdateValues()
+        public async void UpdateValues()
         {
             try
             {
-                brightTrackbar.Value = GetMonitorValueInThread(true);
-                contrastTrackbar.Value = GetMonitorValueInThread(false);
+                await Task.WhenAll(
+                    Task.Run((() => SafeSetTrackBar(brightTrackbar, _monitor.GetBrightness()))),
+                    Task.Run((() => SafeSetTrackBar(contrastTrackbar, _monitor.GetContrast()))));
             }
             catch (InvalidMonitorException e)
             {
@@ -104,16 +108,16 @@ namespace SetBrightness
             }
         }
 
-        private int GetMonitorValueInThread(bool isBrightness)
+        private void SafeSetTrackBar(TrackBar trackBar, int value)
         {
-            var value = 0;
-            var thread = new Thread(() =>
+            if (trackBar.InvokeRequired)
             {
-                value = isBrightness ? _monitor.GetBrightness() : _monitor.GetContrast();
-            });
-            thread.Start();
-            thread.Join();
-            return value;
+                this.Invoke(new Action<TrackBar, int>(SafeSetTrackBar), trackBar, value);
+            }
+            else
+            {
+                trackBar.Value = value;
+            }
         }
     }
 }
