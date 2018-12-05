@@ -403,7 +403,12 @@ namespace SetBrightness
             _monitors.Clear();
 
             // todo mouse werid stuck
-            _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles());
+            IEnumerable<DdcCiMonitor> handles = null;
+            var thread = new Thread(() => { handles = DdcCiMonitorManager.GetMonitorHandles(); });
+            thread.Start();
+            thread.Join();
+            _monitors.AddRange(handles);
+
             // todo use a manager class
             _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
 
