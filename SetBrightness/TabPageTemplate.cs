@@ -9,6 +9,7 @@ namespace SetBrightness
     {
         private readonly Monitor _monitor;
         private readonly MonitorsManager _monitorsManager;
+        public readonly MonitorType MonitorType;
 
         public TabPageTemplate(Monitor monitor, string name, MonitorsManager monitorsManager)
         {
@@ -16,6 +17,7 @@ namespace SetBrightness
             _monitor = monitor;
             _monitorsManager = monitorsManager;
             Name = name;
+            MonitorType = monitor.Type;
             PreWork();
         }
 
@@ -35,12 +37,20 @@ namespace SetBrightness
             brightLabel.DataBindings.Add("Text", brightTrackbar, "Value");
             contrastLabel.DataBindings.Add("Text", contrastTrackbar, "Value");
 
-            brightTrackbar.ValueChanged += (sender, args) => Brightness = brightTrackbar.Value;
-            contrastTrackbar.ValueChanged += (sender, args) => Contrast = contrastTrackbar.Value;
+            brightTrackbar.ValueChanged += (sender, e) =>
+            {
+                var value = brightTrackbar.Value;
+                new Thread(() => _monitor.SetBrightness(value)).Start();
+            };
+            contrastTrackbar.ValueChanged += (sender, e) =>
+            {
+                var value = contrastTrackbar.Value;
+                new Thread(() => _monitor.SetContrast(value)).Start();
+            };
         }
 
         #region use contrast ui modify
-        
+
         private bool _useContrast;
 
         public bool UseContrast
@@ -62,61 +72,16 @@ namespace SetBrightness
 
         public int Brightness
         {
-            get
-            {
-                try
-                {
-                    return _monitor.GetBrightness();
-                }
-                catch (InvalidMonitorException e)
-                {
-                    _monitorsManager.RefreshMonitors();
-                    Debug.WriteLine(e);
-                }
-
-                return 0;
-            }
+            get { return brightTrackbar.Value; }
             set
             {
-                // windows form control thread-safe call
-                var thread = new Thread(new SetTrackBarThreadSafe(value, this, brightTrackbar).Set);
-                thread.Start();
-
-                _monitor.SetBrightness(value);
-            }
-        }
-
-        private class SetTrackBarThreadSafe
-        {
-            private readonly int _value;
-            private readonly TabPageTemplate _tabPageTemplate;
-            private readonly TrackBar _trackBar;
-
-            public SetTrackBarThreadSafe(int value, TabPageTemplate tabPageTemplate, TrackBar trackBar)
-            {
-                _value = value;
-                _tabPageTemplate = tabPageTemplate;
-                _trackBar = trackBar;
-            }
-
-            private delegate void SetDelegate();
-
-            public void Set()
-            {
-                if (_trackBar.InvokeRequired)
+                if (brightTrackbar.Value == value)
                 {
-                    var @delegate = new SetDelegate(Set);
-                    _tabPageTemplate.Invoke(@delegate);
+                    return;
                 }
-                else
-                {
-                    if (_trackBar.Value == _value)
-                    {
-                        return;
-                    }
 
-                    _trackBar.Value = _value;
-                }
+                brightTrackbar.Value = value;
+                new Thread(() => { _monitor.SetBrightness(value); }).Start();
             }
         }
 
@@ -125,35 +90,30 @@ namespace SetBrightness
 
         public int BrightnessMin => 0;
 
-        private int Contrast
+        public void UpdateValues()
         {
-            get
+            try
             {
-                try
-                {
-                    return _monitor.GetContrast();
-                }
-                catch (InvalidMonitorException e)
-                {
-                    _monitorsManager.RefreshMonitors();
-                    Debug.WriteLine(e);
-                }
-
-                return 0;
+                brightTrackbar.Value = GetMonitorValueInThread(true);
+                contrastTrackbar.Value = GetMonitorValueInThread(false);
             }
-            set
+            catch (InvalidMonitorException e)
             {
-                var thread = new Thread(new SetTrackBarThreadSafe(value, this, contrastTrackbar).Set);
-                thread.Start();
-
-                _monitor.SetContrast(value);
+                _monitorsManager.RefreshMonitors();
+                Debug.WriteLine(e);
             }
         }
 
-        public void UpdateTrackBars()
+        private int GetMonitorValueInThread(bool isBrightness)
         {
-            brightTrackbar.Value = Brightness;
-            contrastTrackbar.Value = Contrast;
+            var value = 0;
+            var thread = new Thread(() =>
+            {
+                value = isBrightness ? _monitor.GetBrightness() : _monitor.GetContrast();
+            });
+            thread.Start();
+            thread.Join();
+            return value;
         }
     }
 }

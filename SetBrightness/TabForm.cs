@@ -46,7 +46,9 @@ namespace SetBrightness
         private void AddPage(Monitor monitor)
         {
             var page = new TabPage(monitor.Name);
-            page.Controls.Add(new TabPageTemplate(monitor, PageControlName, _monitorsManager));
+            var template = new TabPageTemplate(monitor, PageControlName, _monitorsManager);
+            template.UpdateValues();
+            page.Controls.Add(template);
             tabControl.TabPages.Add(page);
         }
 
@@ -188,13 +190,14 @@ namespace SetBrightness
 
         private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // todo tab page flash
             UpdateTrackbarValue();
         }
 
         private void UpdateTrackbarValue()
         {
             // todo ddc/ci monitor has got some terrible delay
-            ((TabPageTemplate) tabControl.SelectedTab?.Controls[PageControlName])?.UpdateTrackBars();
+            ((TabPageTemplate) tabControl.SelectedTab?.Controls[PageControlName])?.UpdateValues();
         }
 
         #region handle application start twice
@@ -250,34 +253,13 @@ namespace SetBrightness
 
             var delta = (short) (mouseStruct.mouseData >> 16);
             var tabTemplate = (TabPageTemplate) tabControl.SelectedTab.Controls[PageControlName];
-
-            // call COM in global hook lead to disconnected context
-            var thread = new Thread(new ThreadWrap(delta, tabTemplate).ThreadChild);
-            thread.Start();
+            var brightness = tabTemplate.Brightness;
+            const int wheelChange = 5;
+            tabTemplate.Brightness = delta > 0
+                ? Math.Min(brightness + wheelChange, tabTemplate.BrightnessMax)
+                : Math.Max(brightness - wheelChange, tabTemplate.BrightnessMin);
 
             @continue = false;
-        }
-
-        private class ThreadWrap
-        {
-            private const int WheelChange = 5;
-            private readonly int _delta;
-            private readonly TabPageTemplate _tabTemplate;
-
-            public ThreadWrap(int delta, TabPageTemplate template)
-            {
-                _delta = delta;
-                _tabTemplate = template;
-            }
-
-            public void ThreadChild()
-            {
-                var brightness = _tabTemplate.Brightness;
-                var des = _delta > 0
-                    ? Math.Min(brightness + WheelChange, _tabTemplate.BrightnessMax)
-                    : Math.Max(brightness - WheelChange, _tabTemplate.BrightnessMin);
-                _tabTemplate.Brightness = des;
-            }
         }
 
         #endregion
@@ -285,6 +267,7 @@ namespace SetBrightness
         private void rescanToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _monitorsManager.RefreshMonitors();
+            notifyIcon.ShowBalloonTip(1500, "完成", "已经重新扫描屏幕", ToolTipIcon.Info);
         }
     }
 
@@ -402,7 +385,6 @@ namespace SetBrightness
             _clearPagesDelegate();
             _monitors.Clear();
 
-            // todo mouse werid stuck
             IEnumerable<DdcCiMonitor> handles = null;
             var thread = new Thread(() => { handles = DdcCiMonitorManager.GetMonitorHandles(); });
             thread.Start();

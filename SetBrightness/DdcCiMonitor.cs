@@ -35,6 +35,7 @@ namespace SetBrightness
 
         public DdcCiMonitor(IntPtr physicalMonitorHandle)
         {
+            Type = MonitorType.DdcCiMonitor;
             _physicalMonitorHandle = physicalMonitorHandle;
             FigureOutInfo();
         }

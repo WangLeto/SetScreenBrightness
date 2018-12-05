@@ -21,6 +21,7 @@ namespace SetBrightness
 
         public WmiMonitor(string instanceId)
         {
+            Type = MonitorType.WmiMonitor;
             _instanceId = instanceId;
             SupportContrast = false;
         }
