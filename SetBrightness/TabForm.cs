@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using SetBrightness.Properties;
@@ -380,17 +382,13 @@ namespace SetBrightness
             }
         }
 
-        public void RefreshMonitors()
+        public async void RefreshMonitors()
         {
             _clearPagesDelegate();
             _monitors.Clear();
 
-            IEnumerable<DdcCiMonitor> handles = null;
-            var thread = new Thread(() => { handles = DdcCiMonitorManager.GetMonitorHandles(); });
-            thread.Start();
-            thread.Join();
-            _monitors.AddRange(handles);
-
+            await Task.Run((() => _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles())));
+            
             // todo use a manager class
             _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
 
