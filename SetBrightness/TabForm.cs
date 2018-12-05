@@ -35,6 +35,7 @@ namespace SetBrightness
             };
 
             ChangeWindowMessageFilter(WmCopydata, 1);
+            tabControl.ControlAdded += (sender, args) => loadingTipLabel.Hide();
 
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.Install();
@@ -54,6 +55,7 @@ namespace SetBrightness
         private void ClearPages()
         {
             tabControl.TabPages.Clear();
+            loadingTipLabel.Show();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -385,7 +387,7 @@ namespace SetBrightness
             _monitors.Clear();
 
             await Task.Run((() => _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles())));
-            
+
             // todo use a manager class
             _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
 

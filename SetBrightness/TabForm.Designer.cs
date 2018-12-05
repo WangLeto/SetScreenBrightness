@@ -37,6 +37,7 @@
             this.useContrastToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rescanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadingTipLabel = new System.Windows.Forms.Label();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -65,14 +66,14 @@
             this.rescanToolStripMenuItem,
             this.quitToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(153, 114);
+            this.contextMenuStrip.Size = new System.Drawing.Size(149, 92);
             this.contextMenuStrip.Closing += new System.Windows.Forms.ToolStripDropDownClosingEventHandler(this.contextMenuStrip_Closing);
             // 
             // autoStartToolStripMenuItem
             // 
             this.autoStartToolStripMenuItem.CheckOnClick = true;
             this.autoStartToolStripMenuItem.Name = "autoStartToolStripMenuItem";
-            this.autoStartToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.autoStartToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.autoStartToolStripMenuItem.Text = "开机启动";
             this.autoStartToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.autoStartToolStripMenuItem_CheckStateChanged);
             this.autoStartToolStripMenuItem.MouseDown += new System.Windows.Forms.MouseEventHandler(this.autoStartToolStripMenuItem_MouseDown);
@@ -81,7 +82,7 @@
             // 
             this.useContrastToolStripMenuItem.CheckOnClick = true;
             this.useContrastToolStripMenuItem.Name = "useContrastToolStripMenuItem";
-            this.useContrastToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.useContrastToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.useContrastToolStripMenuItem.Text = "启用对比度";
             this.useContrastToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.useContrastToolStripMenuItem_CheckStateChanged);
             this.useContrastToolStripMenuItem.MouseDown += new System.Windows.Forms.MouseEventHandler(this.useContrastToolStripMenuItem_MouseDown);
@@ -89,22 +90,33 @@
             // rescanToolStripMenuItem
             // 
             this.rescanToolStripMenuItem.Name = "rescanToolStripMenuItem";
-            this.rescanToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.rescanToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.rescanToolStripMenuItem.Text = "重新检测屏幕";
             this.rescanToolStripMenuItem.Click += new System.EventHandler(this.rescanToolStripMenuItem_Click);
             // 
             // quitToolStripMenuItem
             // 
             this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            this.quitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.quitToolStripMenuItem.Text = "退出";
             this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
+            // 
+            // loadingTipLabel
+            // 
+            this.loadingTipLabel.AutoSize = true;
+            this.loadingTipLabel.BackColor = System.Drawing.Color.White;
+            this.loadingTipLabel.Location = new System.Drawing.Point(160, 35);
+            this.loadingTipLabel.Name = "loadingTipLabel";
+            this.loadingTipLabel.Size = new System.Drawing.Size(54, 17);
+            this.loadingTipLabel.TabIndex = 1;
+            this.loadingTipLabel.Text = "加载中…";
             // 
             // TabForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(381, 137);
+            this.Controls.Add(this.loadingTipLabel);
             this.Controls.Add(this.tabControl);
             this.Font = new System.Drawing.Font("微软雅黑", 9F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
@@ -117,6 +129,7 @@
             this.VisibleChanged += new System.EventHandler(this.TabForm_VisibleChanged);
             this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -129,5 +142,6 @@
         private System.Windows.Forms.ToolStripMenuItem useContrastToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rescanToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
+        private System.Windows.Forms.Label loadingTipLabel;
     }
 }
