@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -13,13 +15,12 @@ namespace SetBrightness
     public partial class TabForm : Form
     {
         // todo tabcontrol tags blinks when mouse hover
+        // todo realize a diff method, only add new monitors & remove invalide ones
         private const string PageControlName = nameof(TabPageTemplate);
         private readonly CheckManager _checkManager;
 
         private readonly Timer _timer = new Timer(150);
 
-        // todo realize a diff method, only add new monitors & remove invalide ones
-        // private readonly Timer _updateMonitorsTimer = new Timer(1000 * 60 * 5);
         private bool _canChangeVisible = true;
 
         private readonly MouseHook _mouseHook = new MouseHook();
@@ -195,28 +196,29 @@ namespace SetBrightness
 
         private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // todo tab page flash
             UpdateTrackbarValue();
         }
 
         private void UpdateTrackbarValue()
         {
-            // todo ddc/ci monitor has got some terrible delay
             ((TabPageTemplate) tabControl.SelectedTab?.Controls[PageControlName])?.UpdateValues();
         }
 
         #region handle application start twice
 
         private const int WmCopydata = 0x004A;
+        private const int WmDisplaychange = 0x007E;
 
         [DllImport("user32")]
         private static extern bool ChangeWindowMessageFilter(uint msg, int flags);
 
         protected override void DefWndProc(ref Message m)
         {
+            base.DefWndProc(ref m);
             switch (m.Msg)
             {
                 case WmCopydata:
+                {
                     var mystr = new MessageSender.CopyDataStruct();
                     var mytype = mystr.GetType();
                     mystr = (MessageSender.CopyDataStruct) m.GetLParam(mytype);
@@ -233,9 +235,43 @@ namespace SetBrightness
                     }
 
                     break;
-                default:
-                    base.DefWndProc(ref m);
+                }
+                case WmDisplaychange:
+                    Debug.WriteLine(nameof(WmDisplaychange));
+                    Action action = _monitorsManager.RefreshMonitors;
+                    DelayTasks.OrderTask(action, 2);
+                    DelayTasks.OrderTask(action, 2);
+                    DelayTasks.OrderTask(action, 5);
                     break;
+            }
+        }
+
+        private class DelayTasks
+        {
+            private static readonly Queue<object[]> TaskQueue = new Queue<object[]>();
+            private static readonly SemaphoreSlim SemaphoreSlim = new SemaphoreSlim(1, 1);
+
+            public static void OrderTask(Action action, int second)
+            {
+                TaskQueue.Enqueue(new object[] {action, second * 1000});
+                Work();
+            }
+
+            private static async void Work()
+            {
+                var taskDelay = TaskQueue.Dequeue();
+                await SemaphoreSlim.WaitAsync();
+                try
+                {
+                    var task = (Action) taskDelay[0];
+                    var delay = (int) taskDelay[1];
+                    await Task.Delay(delay);
+                    task.Invoke();
+                }
+                finally
+                {
+                    SemaphoreSlim.Release();
+                }
             }
         }
 
@@ -390,7 +426,7 @@ namespace SetBrightness
             _clearPagesDelegate();
             _monitors.Clear();
 
-            await Task.Run((() => _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles())));
+            await Task.Run(() => _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles()));
 
             // todo use a manager class
             _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));

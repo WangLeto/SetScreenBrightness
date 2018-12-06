@@ -43,7 +43,6 @@ namespace SetBrightness
             brightLabel.DataBindings.Add("Text", brightTrackbar, "Value");
             contrastLabel.DataBindings.Add("Text", contrastTrackbar, "Value");
 
-            // todo use background work threads and make earlier thread cancelable
             brightTrackbar.ValueChanged += (sender, e) =>
             {
                 var value = brightTrackbar.Value;
