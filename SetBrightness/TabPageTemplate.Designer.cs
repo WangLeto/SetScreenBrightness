@@ -68,6 +68,7 @@
             this.brightTrackbar.TabIndex = 1;
             this.brightTrackbar.TabStop = false;
             this.brightTrackbar.TickFrequency = 5;
+            this.brightTrackbar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.brightTrackbar_MouseDown);
             // 
             // contrastTrackbar
             // 
@@ -79,6 +80,7 @@
             this.contrastTrackbar.TabIndex = 1;
             this.contrastTrackbar.TabStop = false;
             this.contrastTrackbar.TickFrequency = 5;
+            this.contrastTrackbar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.contrastTrackbar_MouseDown);
             // 
             // contrastLabel
             // 

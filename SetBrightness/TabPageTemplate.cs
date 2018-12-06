@@ -55,14 +55,9 @@ namespace SetBrightness
                 new Thread(() => _setQueue.Add(value, false)).Start();
             };
         }
-
-        #region use contrast ui modify
-
-        private bool _useContrast;
-
+        
         public bool UseContrast
         {
-            get { return _useContrast; }
             set
             {
                 if (!_monitor.SupportContrast)
@@ -71,11 +66,8 @@ namespace SetBrightness
                 }
 
                 contrastTrackbar.Enabled = value;
-                _useContrast = value;
             }
         }
-
-        #endregion
 
         public int Brightness
         {
@@ -89,6 +81,20 @@ namespace SetBrightness
 
                 brightTrackbar.Value = value;
                 new Thread(() => { _setQueue.Add(value, true); }).Start();
+            }
+        }
+
+        private int Contrast
+        {
+            set
+            {
+                if (contrastTrackbar.Value == value)
+                {
+                    return;
+                }
+
+                contrastTrackbar.Value = value;
+                new Thread(() => { _setQueue.Add(value, false); }).Start();
             }
         }
 
@@ -162,5 +168,31 @@ namespace SetBrightness
                 }
             }
         }
+
+        #region mouse click set trackbar value directly
+
+        private static int GetTrackbarClickValue(TrackBar trackBar, double x)
+        {
+            int max = trackBar.Maximum, min = trackBar.Minimum;
+            // guess so much, not found in:
+            // https://referencesource.microsoft.com/#System.Windows.Forms/winforms/Managed/System/WinForms/TrackBarRenderer.cs
+            const int padding = 8;
+            var value = (x - padding) / (trackBar.Width - 2 * padding) * (max - min);
+            Debug.WriteLine("click x: " + x + "\tminus padding: " + (x - padding) + "\tvalue: " + value);
+            value = value > max ? max : value < min ? min : value;
+            return Convert.ToInt32(value);
+        }
+
+        private void brightTrackbar_MouseDown(object sender, MouseEventArgs e)
+        {
+            Brightness = GetTrackbarClickValue(brightTrackbar, e.X);
+        }
+
+        private void contrastTrackbar_MouseDown(object sender, MouseEventArgs e)
+        {
+            Contrast = GetTrackbarClickValue(contrastTrackbar, e.X);
+        }
+
+        #endregion
     }
 }

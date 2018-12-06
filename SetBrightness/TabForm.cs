@@ -12,10 +12,14 @@ namespace SetBrightness
 {
     public partial class TabForm : Form
     {
+        // todo tabcontrol tags blinks when mouse hover
         private const string PageControlName = nameof(TabPageTemplate);
         private readonly CheckManager _checkManager;
 
         private readonly Timer _timer = new Timer(150);
+
+        // todo realize a diff method, only add new monitors & remove invalide ones
+        // private readonly Timer _updateMonitorsTimer = new Timer(1000 * 60 * 5);
         private bool _canChangeVisible = true;
 
         private readonly MouseHook _mouseHook = new MouseHook();
