@@ -168,6 +168,11 @@ namespace SetBrightness
             }
         }
 
+        public bool OwnTheMonitor(Monitor monitor)
+        {
+            return monitor.IsSameMonitor(_monitor);
+        }
+
         #region mouse click set trackbar value directly
 
         private static int GetTrackbarClickValue(TrackBar trackBar, double x)

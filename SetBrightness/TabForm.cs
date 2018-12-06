@@ -29,7 +29,7 @@ namespace SetBrightness
         public TabForm()
         {
             InitializeComponent();
-            _monitorsManager = new MonitorsManager(AddPage, ClearPages);
+            _monitorsManager = new MonitorsManager(AddPage, CleanPages);
 
             _checkManager = new CheckManager(this, contextMenuStrip);
 
@@ -50,6 +50,11 @@ namespace SetBrightness
 
         private void AddPage(Monitor monitor)
         {
+            if (!IsNewMonitor(monitor))
+            {
+                return;
+            }
+
             var page = new TabPage(monitor.Name);
             var template = new TabPageTemplate(monitor, PageControlName, _monitorsManager);
             template.UpdateValues();
@@ -57,10 +62,45 @@ namespace SetBrightness
             tabControl.TabPages.Add(page);
         }
 
-        private void ClearPages()
+        private bool IsNewMonitor(Monitor monitor)
         {
-            tabControl.TabPages.Clear();
-            loadingTipLabel.Show();
+            var pages = tabControl.TabPages;
+            foreach (TabPage page in pages)
+            {
+                if (((TabPageTemplate) page.Controls[PageControlName]).OwnTheMonitor(monitor))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void CleanPages(Monitor[] monitors)
+        {
+            var pages = tabControl.TabPages;
+
+            foreach (TabPage page in pages)
+            {
+                var alive = false;
+                foreach (var monitor in monitors)
+                {
+                    if (((TabPageTemplate) page.Controls[PageControlName]).OwnTheMonitor(monitor))
+                    {
+                        alive = true;
+                    }
+                }
+
+                if (!alive)
+                {
+                    tabControl.TabPages.Remove(page);
+                }
+            }
+
+            if (tabControl.TabCount == 0)
+            {
+                loadingTipLabel.Show();
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -399,31 +439,33 @@ namespace SetBrightness
 
     public class MonitorsManager
     {
-        public delegate void AddMonitorDelegate(Monitor monitor);
-
-        public delegate void ClearPagesDelegate();
-
-        private readonly AddMonitorDelegate _addMonitorDelegate;
-        private readonly ClearPagesDelegate _clearPagesDelegate;
+        private readonly Action<Monitor> _addMonitorAction;
+        private readonly Action<Monitor[]> _cleanAction;
         private readonly List<Monitor> _monitors = new List<Monitor>();
 
-        public MonitorsManager(AddMonitorDelegate addMonitorDelegate, ClearPagesDelegate clearPagesDelegate)
+        public MonitorsManager(Action<Monitor> addMonitorAction, Action<Monitor[]> cleanAction)
         {
-            _addMonitorDelegate = addMonitorDelegate;
-            _clearPagesDelegate = clearPagesDelegate;
+            _addMonitorAction = addMonitorAction;
+            _cleanAction = cleanAction;
         }
 
         private void MapMonitorsToPages()
         {
             foreach (var monitor in _monitors)
             {
-                _addMonitorDelegate(monitor);
+                _addMonitorAction(monitor);
             }
+
+            CleanInvalidTabPages();
+        }
+
+        private void CleanInvalidTabPages()
+        {
+            _cleanAction.Invoke(_monitors.ToArray());
         }
 
         public async void RefreshMonitors()
         {
-            _clearPagesDelegate();
             _monitors.Clear();
 
             await Task.Run(() => _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles()));

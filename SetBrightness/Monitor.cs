@@ -20,6 +20,7 @@ namespace SetBrightness
         // a dead loop. call TabPageTemplate.UpdateValues() to refresh values and update UI
         public abstract int GetBrightness();
         public abstract int GetContrast();
+        public abstract bool IsSameMonitor(Monitor monitor);
     }
 
     public enum MonitorType

@@ -106,6 +106,11 @@ namespace SetBrightness
             return 0;
         }
 
+        public override bool IsSameMonitor(Monitor monitor)
+        {
+            return monitor.Type == Type && ((WmiMonitor) monitor)._instanceId.Equals(_instanceId);
+        }
+
         private bool RightDevice(ManagementBaseObject instance)
         {
             // InstanceName         DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0

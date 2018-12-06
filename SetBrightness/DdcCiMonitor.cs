@@ -134,6 +134,12 @@ namespace SetBrightness
                 : HighLevelGetCurrentValue(GetMonitorContrast);
         }
 
+        public override bool IsSameMonitor(Monitor monitor)
+        {
+            return monitor.Type == Type &&
+                   ((DdcCiMonitor) monitor)._physicalMonitorHandle.Equals(_physicalMonitorHandle);
+        }
+
         private int LowLevelGetCurrentValue(byte code)
         {
             LpmcVcpCodeType pvct;
