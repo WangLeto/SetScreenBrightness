@@ -21,6 +21,7 @@ namespace SetBrightness
         public abstract int GetBrightness();
         public abstract int GetContrast();
         public abstract bool IsSameMonitor(Monitor monitor);
+        public abstract bool IsValide();
     }
 
     public enum MonitorType

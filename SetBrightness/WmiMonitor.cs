@@ -1,4 +1,5 @@
-﻿using System.Management;
+﻿using System;
+using System.Management;
 using System.Runtime.InteropServices;
 
 namespace SetBrightness
@@ -109,6 +110,26 @@ namespace SetBrightness
         public override bool IsSameMonitor(Monitor monitor)
         {
             return monitor.Type == Type && ((WmiMonitor) monitor)._instanceId.Equals(_instanceId);
+        }
+
+        public override bool IsValide()
+        {
+            var succeed = false;
+            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightness"))
+            using (var instances = searcher.Get())
+            {
+                foreach (var instance in instances)
+                {
+                    if (!RightDevice(instance))
+                    {
+                        continue;
+                    }
+
+                    succeed = true;
+                }
+            }
+
+            return succeed;
         }
 
         private bool RightDevice(ManagementBaseObject instance)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using PhysicalMonitorHandle = System.IntPtr;
 
@@ -136,8 +137,23 @@ namespace SetBrightness
 
         public override bool IsSameMonitor(Monitor monitor)
         {
+            // todo wrong comperation
             return monitor.Type == Type &&
-                   ((DdcCiMonitor) monitor)._physicalMonitorHandle.Equals(_physicalMonitorHandle);
+                   (long) ((DdcCiMonitor) monitor)._physicalMonitorHandle == (long) _physicalMonitorHandle;
+        }
+
+        public override bool IsValide()
+        {
+            if (!_isLowLevel)
+            {
+                var values = new short[3];
+                return GetMonitorBrightness(_physicalMonitorHandle, ref values[0], ref values[1], ref values[2]);
+            }
+
+            LpmcVcpCodeType pvct;
+            uint currentValue, max;
+            return GetVCPFeatureAndVCPFeatureReply(_physicalMonitorHandle, VcpLuminanceCode,
+                out pvct, out currentValue, out max);
         }
 
         private int LowLevelGetCurrentValue(byte code)

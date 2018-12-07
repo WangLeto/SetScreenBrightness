@@ -76,22 +76,13 @@ namespace SetBrightness
             return true;
         }
 
-        private void CleanPages(Monitor[] monitors)
+        private void CleanPages()
         {
             var pages = tabControl.TabPages;
 
             foreach (TabPage page in pages)
             {
-                var alive = false;
-                foreach (var monitor in monitors)
-                {
-                    if (((TabPageTemplate) page.Controls[PageControlName]).OwnTheMonitor(monitor))
-                    {
-                        alive = true;
-                    }
-                }
-
-                if (!alive)
+                if (!((TabPageTemplate) page.Controls[PageControlName]).IsValide())
                 {
                     tabControl.TabPages.Remove(page);
                 }
@@ -440,10 +431,10 @@ namespace SetBrightness
     public class MonitorsManager
     {
         private readonly Action<Monitor> _addMonitorAction;
-        private readonly Action<Monitor[]> _cleanAction;
+        private readonly Action _cleanAction;
         private readonly List<Monitor> _monitors = new List<Monitor>();
 
-        public MonitorsManager(Action<Monitor> addMonitorAction, Action<Monitor[]> cleanAction)
+        public MonitorsManager(Action<Monitor> addMonitorAction, Action cleanAction)
         {
             _addMonitorAction = addMonitorAction;
             _cleanAction = cleanAction;
@@ -451,17 +442,11 @@ namespace SetBrightness
 
         private void MapMonitorsToPages()
         {
+            _cleanAction.Invoke();
             foreach (var monitor in _monitors)
             {
                 _addMonitorAction(monitor);
             }
-
-            CleanInvalidTabPages();
-        }
-
-        private void CleanInvalidTabPages()
-        {
-            _cleanAction.Invoke(_monitors.ToArray());
         }
 
         public async void RefreshMonitors()
