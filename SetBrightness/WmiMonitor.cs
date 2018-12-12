@@ -30,7 +30,7 @@ namespace SetBrightness
         private bool WmiOperation(string className, Action<ManagementObject> action)
         {
             var succeed = false;
-            using (var searcher = GetBrightnessSearcher(className))
+            using (var searcher = GetWmiSearcher(className))
             using (var instances = searcher.Get())
             {
                 foreach (var instance in instances)
@@ -59,7 +59,7 @@ namespace SetBrightness
             }
         }
 
-        private static ManagementObjectSearcher GetBrightnessSearcher(string queryStr)
+        public static ManagementObjectSearcher GetWmiSearcher(string queryStr)
         {
             var scope = new ManagementScope("root\\WMI");
             var query = new SelectQuery(queryStr);

@@ -135,15 +135,21 @@ namespace SetBrightness
                 : HighLevelGetCurrentValue(GetMonitorContrast);
         }
 
+        private bool _tested = false;
         public override bool IsSameMonitor(Monitor monitor)
         {
-            // todo wrong comperation
-            return monitor.Type == Type &&
-                   (long) ((DdcCiMonitor) monitor)._physicalMonitorHandle == (long) _physicalMonitorHandle;
+            // not found effective way to detect the same monitor handle
+            _tested = true;
+            return false;
         }
 
         public override bool IsValide()
         {
+            if (_tested)
+            {
+                return false;
+            }
+
             if (!_isLowLevel)
             {
                 var values = new short[3];

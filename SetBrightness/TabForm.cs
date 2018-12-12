@@ -33,6 +33,7 @@ namespace SetBrightness
 
         public TabForm()
         {
+            new WmiMonitorManager().EnumMonitor();
             InitializeComponent();
             _monitorsManager = new MonitorsManager(AddPage, CleanPages);
 
@@ -274,7 +275,7 @@ namespace SetBrightness
                 }
                 case WmDisplaychange:
                     Debug.WriteLine(nameof(WmDisplaychange));
-                    Action action = _monitorsManager.RefreshMonitors;
+                    Action<bool, NotifyIcon> action = _monitorsManager.RefreshMonitors;
                     DelayTasks.OrderTask(action, 2);
                     DelayTasks.OrderTask(action, 2);
                     DelayTasks.OrderTask(action, 5);
@@ -287,7 +288,7 @@ namespace SetBrightness
             private static readonly Queue<object[]> TaskQueue = new Queue<object[]>();
             private static readonly SemaphoreSlim SemaphoreSlim = new SemaphoreSlim(1, 1);
 
-            public static void OrderTask(Action action, int second)
+            public static void OrderTask(Action<bool, NotifyIcon> action, int second)
             {
                 TaskQueue.Enqueue(new object[] {action, second * 1000});
                 Work();
@@ -299,10 +300,10 @@ namespace SetBrightness
                 await SemaphoreSlim.WaitAsync();
                 try
                 {
-                    var task = (Action) taskDelay[0];
+                    var task = (Action<bool, NotifyIcon>) taskDelay[0];
                     var delay = (int) taskDelay[1];
                     await Task.Delay(delay);
-                    task.Invoke();
+                    task.Invoke(false, null);
                 }
                 finally
                 {
@@ -343,8 +344,7 @@ namespace SetBrightness
 
         private void rescanToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _monitorsManager.RefreshMonitors();
-            notifyIcon.ShowBalloonTip(1500, "完成", "已经重新扫描屏幕", ToolTipIcon.Info);
+            _monitorsManager.RefreshMonitors(true, notifyIcon);
         }
     }
 
@@ -454,7 +454,7 @@ namespace SetBrightness
             }
         }
 
-        public async void RefreshMonitors()
+        public async void RefreshMonitors(bool showNotify = false, NotifyIcon notifyIcon = null)
         {
             _monitors.Clear();
 
@@ -464,6 +464,10 @@ namespace SetBrightness
             _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
 
             MapMonitorsToPages();
+            if (showNotify)
+            {
+                notifyIcon?.ShowBalloonTip(1500, "完成", "已经重新扫描屏幕", ToolTipIcon.Info);
+            }
         }
     }
 }
