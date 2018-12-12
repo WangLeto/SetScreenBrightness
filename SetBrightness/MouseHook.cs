@@ -9,7 +9,7 @@ namespace SetBrightness
     /// <summary>
     /// Class for intercepting low level Windows mouse hooks.
     /// </summary>
-    class MouseHook
+    internal class MouseHook
     {
         /// <summary>
         /// Internal callback processing function
@@ -71,25 +71,27 @@ namespace SetBrightness
         private int HookFunc(int nCode, int wParam, IntPtr lParam)
         {
             // parse system messages
-            if (nCode >= 0)
+            if (nCode < 0)
             {
-                Msllhookstruct msllhookstruct =
-                    (Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct));
-                switch ((MouseMessages) wParam)
-                {
-                    case MouseMessages.WmMouseWheel:
-                        if (MouseWheel != null)
-                        {
-                            bool @continue;
-                            MouseWheel(msllhookstruct, out @continue);
-                            if (!@continue)
-                            {
-                                return 1;
-                            }
-                        }
+                return CallNextHookEx(_hookId, nCode, wParam, lParam);
+            }
 
-                        break;
-                }
+            var msllhookstruct =
+                (Msllhookstruct) Marshal.PtrToStructure(lParam, typeof(Msllhookstruct));
+            switch ((MouseMessages) wParam)
+            {
+                case MouseMessages.WmMouseWheel:
+                    if (MouseWheel != null)
+                    {
+                        bool @continue;
+                        MouseWheel(msllhookstruct, out @continue);
+                        if (!@continue)
+                        {
+                            return 1;
+                        }
+                    }
+
+                    break;
             }
 
             return CallNextHookEx(_hookId, nCode, wParam, lParam);

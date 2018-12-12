@@ -14,9 +14,6 @@ namespace SetBrightness
 {
     public partial class TabForm : Form
     {
-        // todo tabcontrol tags blinks when mouse hover
-        // todo realize a diff method, only add new monitors & remove invalide ones
-
         #region declaration
 
         private const string PageControlName = nameof(TabPageTemplate);
@@ -28,12 +25,15 @@ namespace SetBrightness
 
         private readonly MouseHook _mouseHook = new MouseHook();
         private readonly MonitorsManager _monitorsManager;
+        public static string WindowName = "亮度调节";
 
         #endregion
 
         public TabForm()
         {
             InitializeComponent();
+
+            Text = notifyIcon.Text = WindowName;
             _monitorsManager = new MonitorsManager(AddPage, CleanPages);
 
             _checkManager = new CheckManager(this, contextMenuStrip);
@@ -51,6 +51,12 @@ namespace SetBrightness
             _mouseHook.Install();
             Application.ApplicationExit += Application_ApplicationExit;
             _monitorsManager.RefreshMonitors();
+        }
+
+        public sealed override string Text
+        {
+            get { return base.Text; }
+            set { base.Text = value; }
         }
 
         private void AddPage(Monitor monitor)
@@ -221,12 +227,12 @@ namespace SetBrightness
             var left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
             var leftByCursor = Cursor.Position.X - Width / 2;
             Left = left;
-            if (!useCursorPos)
+            if (useCursorPos)
             {
                 Left = Math.Min(left, leftByCursor);
             }
 
-            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 5;
+            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 2;
             Activate();
         }
 

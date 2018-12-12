@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace SetBrightness
@@ -23,10 +25,11 @@ namespace SetBrightness
                 }
                 else
                 {
-                    MessageSender.SendMessageToProcess(Form1.WindowName, MessageSender.Msg);
+                    MessageSender.SendMessageToProcess(TabForm.WindowName, MessageSender.Msg);
                     Application.Exit();
                 }
             }
+
         }
     }
 }

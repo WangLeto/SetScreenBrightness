@@ -54,7 +54,6 @@
             // 
             this.notifyIcon.ContextMenuStrip = this.contextMenuStrip;
             this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
-            this.notifyIcon.Text = "亮度调节";
             this.notifyIcon.Visible = true;
             this.notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseClick);
             // 
@@ -124,7 +123,6 @@
             this.Name = "TabForm";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
-            this.Text = "TabForm";
             this.TopMost = true;
             this.Deactivate += new System.EventHandler(this.TabForm_Deactivate);
             this.VisibleChanged += new System.EventHandler(this.TabForm_VisibleChanged);

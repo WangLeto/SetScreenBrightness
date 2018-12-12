@@ -97,7 +97,6 @@ namespace SetBrightness
             }
         }
 
-        // todo? read brightness bound
         public int BrightnessMax => 100;
 
         public int BrightnessMin => 0;

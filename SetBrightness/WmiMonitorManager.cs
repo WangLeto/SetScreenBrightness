@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace SetBrightness
 {
-    class WmiMonitorManager
+    internal static class WmiMonitorManager
     {
         public static IEnumerable<Monitor> ListWmiMonitors()
         {
@@ -19,11 +19,11 @@ namespace SetBrightness
             return monitors;
         }
 
-        private static Regex regex = new Regex(@"\\[a-z0-9A-Z]+\\");
+        private static readonly Regex Regex = new Regex(@"\\[a-z0-9A-Z]+\\");
 
         private static string ReadName(string id)
         {
-            var matched = regex.Match(id);
+            var matched = Regex.Match(id);
             var name = matched.ToString();
             return name.Substring(1, name.Length - 2);
         }

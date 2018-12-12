@@ -18,8 +18,7 @@ namespace SetBrightness
         #region Dll Import
 
         [DllImport("User32.dll", EntryPoint = "FindWindow")]
-        private static extern IntPtr FindWindow(string lpClassName,
-            string lpWindowName);
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
         [DllImport("User32.dll", EntryPoint = "SendMessage")]
         private static extern int SendMessage(
@@ -35,18 +34,32 @@ namespace SetBrightness
 
         public static void SendMessageToProcess(string processWindowName, string message)
         {
-            IntPtr windowHandler = FindWindow(null, processWindowName);
-            if ((int) windowHandler != 0)
+            var windowHandler = FindWindow(null, processWindowName);
+            if ((int) windowHandler == 0)
             {
-                //send message
-                byte[] sarr = System.Text.Encoding.Default.GetBytes(message);
-                int len = sarr.Length;
-                CopyDataStruct cds;
-                cds.DwData = (IntPtr) 100;
-                cds.LpData = message;
-                cds.CbData = len + 1;
-                SendMessage((int) windowHandler, WmCopydata, 0, ref cds);
+                return;
             }
+
+            //send message
+            var sarr = System.Text.Encoding.Default.GetBytes(message);
+            var len = sarr.Length;
+            CopyDataStruct cds;
+            cds.DwData = (IntPtr) 100;
+            cds.LpData = message;
+            cds.CbData = len + 1;
+            SendMessage((int) windowHandler, WmCopydata, 0, ref cds);
+        }
+
+        public static void SendMessageToProcess(IntPtr windowHandler, string message)
+        {
+            //send message
+            var sarr = System.Text.Encoding.Default.GetBytes(message);
+            var len = sarr.Length;
+            CopyDataStruct cds;
+            cds.DwData = (IntPtr)100;
+            cds.LpData = message;
+            cds.CbData = len + 1;
+            SendMessage((int)windowHandler, WmCopydata, 0, ref cds);
         }
 
         #endregion
