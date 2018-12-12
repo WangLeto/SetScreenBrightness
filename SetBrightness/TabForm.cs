@@ -16,6 +16,9 @@ namespace SetBrightness
     {
         // todo tabcontrol tags blinks when mouse hover
         // todo realize a diff method, only add new monitors & remove invalide ones
+
+        #region declaration
+
         private const string PageControlName = nameof(TabPageTemplate);
         private readonly CheckManager _checkManager;
 
@@ -25,6 +28,8 @@ namespace SetBrightness
 
         private readonly MouseHook _mouseHook = new MouseHook();
         private readonly MonitorsManager _monitorsManager;
+
+        #endregion
 
         public TabForm()
         {

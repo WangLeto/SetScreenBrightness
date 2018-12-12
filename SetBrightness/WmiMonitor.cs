@@ -27,10 +27,10 @@ namespace SetBrightness
             SupportContrast = false;
         }
 
-        public override void SetBrightness(int brightness)
+        private bool WmiOperation(string className, Action<ManagementObject> action)
         {
-            bool succeed = false;
-            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightnessMethods"))
+            var succeed = false;
+            using (var searcher = GetBrightnessSearcher(className))
             using (var instances = searcher.Get())
             {
                 foreach (var instance in instances)
@@ -41,12 +41,17 @@ namespace SetBrightness
                     }
 
                     succeed = true;
-                    ((ManagementObject) instance).InvokeMethod("WmiSetBrightness", new object[]
-                    {
-                        (uint) 2, (byte) brightness
-                    });
+                    action.Invoke((ManagementObject) instance);
                 }
             }
+
+            return succeed;
+        }
+
+        public override void SetBrightness(int brightness)
+        {
+            var succeed = WmiOperation("WmiMonitorBrightnessMethods",
+                instance => instance.InvokeMethod("WmiSetBrightness", new object[] {(uint) 2, (byte) brightness}));
 
             if (!succeed)
             {
@@ -70,25 +75,14 @@ namespace SetBrightness
 
         private WmiMonitorBrightnessClass GetBrightnessInfo()
         {
-            bool succeed = false;
-            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightness"))
-            using (var instances = searcher.Get())
+            var succeed = WmiOperation("WmiMonitorBrightness", instance =>
             {
-                foreach (var instance in instances)
-                {
-                    if (!RightDevice(instance))
-                    {
-                        continue;
-                    }
-
-                    succeed = true;
-                    _wmiMonitorBrightness.Active = (bool) instance["Active"];
-                    _wmiMonitorBrightness.CurrentBrightness = (byte) instance["CurrentBrightness"];
-                    _wmiMonitorBrightness.InstanceName = (string) instance["InstanceName"];
-                    _wmiMonitorBrightness.Level = (byte[]) instance["Level"];
-                    _wmiMonitorBrightness.Levels = (uint) instance["Levels"];
-                }
-            }
+                _wmiMonitorBrightness.Level = (byte[]) instance["Level"];
+                _wmiMonitorBrightness.Active = (bool) instance["Active"];
+                _wmiMonitorBrightness.Levels = (uint) instance["Levels"];
+                _wmiMonitorBrightness.InstanceName = (string) instance["InstanceName"];
+                _wmiMonitorBrightness.CurrentBrightness = (byte) instance["CurrentBrightness"];
+            });
 
             if (!succeed)
             {
@@ -114,30 +108,14 @@ namespace SetBrightness
 
         public override bool IsValide()
         {
-            var succeed = false;
-            using (var searcher = GetBrightnessSearcher("WmiMonitorBrightness"))
-            using (var instances = searcher.Get())
-            {
-                foreach (var instance in instances)
-                {
-                    if (!RightDevice(instance))
-                    {
-                        continue;
-                    }
-
-                    succeed = true;
-                }
-            }
-
-            return succeed;
+            return WmiOperation("WmiMonitorBrightness", a => { });
         }
 
         private bool RightDevice(ManagementBaseObject instance)
         {
-            // InstanceName         DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0
-            // deviceInstanceId     DISPLAY\SDC4C48\4&2e490a7&0&UID265988
-            string instanceName = (string) instance["InstanceName"];
-            return _instanceId.Contains(instanceName);
+            // LOL I don't care the real sequence
+            var instanceName = (string) instance["InstanceName"];
+            return _instanceId.Contains(instanceName) || instanceName.Contains(_instanceId);
         }
     }
 

@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace SetBrightness
 {
-    partial class AllMonitorInfo
+    internal partial class AllMonitorInfo
     {
         public List<MonitorDescription> GetInfos()
         {
