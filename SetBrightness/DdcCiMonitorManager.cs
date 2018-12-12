@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace SetBrightness
@@ -52,10 +51,10 @@ namespace SetBrightness
             // function GetMonitorInfoW works for hmonitor here, not for physical monitor handle
 
             // hMonitor 表示逻辑显示器句柄，一个 hMonitor 多个 physical displays：显示设置中的复制显示器
-            var physicalHandles = GetPhysicalMonitorHandle(hMonitor);
-            foreach (var handle in physicalHandles)
+            var physicalMonitors = GetPhysicalMonitorHandle(hMonitor);
+            foreach (var monitor in physicalMonitors)
             {
-                var instance = new DdcCiMonitor(handle);
+                var instance = new DdcCiMonitor(monitor.hPhysicalMonitor, monitor.szPhysicalMonitorDescription);
                 if (instance.CanUse)
                 {
                     DdcCiMonitors.Add(instance);
@@ -82,17 +81,16 @@ namespace SetBrightness
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
             // not usable at all
-            private readonly string szPhysicalMonitorDescription;
+            public readonly string szPhysicalMonitorDescription;
         }
 
-        private static IEnumerable<IntPtr> GetPhysicalMonitorHandle(IntPtr hMonitor)
+        private static PhysicalMonitor[] GetPhysicalMonitorHandle(IntPtr hMonitor)
         {
             uint monitorCount = 0;
             GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, ref monitorCount);
             var physicalMonitors = new PhysicalMonitor[monitorCount];
             GetPhysicalMonitorsFromHMONITOR(hMonitor, monitorCount, physicalMonitors);
-
-            return physicalMonitors.Select(physicalMonitor => physicalMonitor.hPhysicalMonitor);
+            return physicalMonitors;
         }
 
         #endregion

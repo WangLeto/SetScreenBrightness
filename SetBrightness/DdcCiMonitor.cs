@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using PhysicalMonitorHandle = System.IntPtr;
 
@@ -34,10 +33,11 @@ namespace SetBrightness
 
         private readonly PhysicalMonitorHandle _physicalMonitorHandle;
 
-        public DdcCiMonitor(IntPtr physicalMonitorHandle)
+        public DdcCiMonitor(IntPtr physicalMonitorHandle, string name)
         {
             Type = MonitorType.DdcCiMonitor;
             _physicalMonitorHandle = physicalMonitorHandle;
+            Name = name;
             FigureOutInfo();
         }
 

@@ -1,71 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Management;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace SetBrightness
 {
     class WmiMonitorManager
     {
-        // get all monitors' name
-        public void EnumMonitor()
+        public static IEnumerable<Monitor> ListWmiMonitors()
         {
-            // get all monitors' name and instanceName
-            WmiOperation("WmiMonitorID", instance =>
-            {
-                // ManufacturerName + ProductCodeId is contained in deviceInstanceId == InstanceName
-                // UserFriendlyName is the brand and serie name, possibly null
-                var instanceName = (string) instance["InstanceName"];
-                var userFriendlyName = "";
-                if (instance["UserFriendlyName"] != null)
+            var monitors = new List<Monitor>();
+            WmiOperation("WmiMonitorBrightness",
+                instance =>
                 {
-                    userFriendlyName = Uint16ArrayToString((ushort[]) instance["UserFriendlyName"]);
-                }
-
-                var monitor = new WmiMonitorId()
-                    {InstanceName = (string) instance["InstanceName"], UserFriendlyName = userFriendlyName};
-            });
+                    var id = (string) instance["InstanceName"];
+                    monitors.Add(new WmiMonitor(id, ReadName(id)));
+                }, "");
+            return monitors;
         }
 
-        struct WmiMonitorId
+        private static Regex regex = new Regex(@"\\[a-z0-9A-Z]+\\");
+
+        private static string ReadName(string id)
         {
-            public string InstanceName;
-            public string UserFriendlyName;
+            var matched = regex.Match(id);
+            var name = matched.ToString();
+            return name.Substring(1, name.Length - 2);
         }
 
-        private static string Uint16ArrayToString(IEnumerable<ushort> arr)
-        {
-            var builder = new StringBuilder();
-            foreach (var @ushort in arr)
-            {
-                if (@ushort == 0)
-                {
-                    break;
-                }
-
-                builder.Append((char) @ushort);
-            }
-
-            return builder.ToString();
-        }
-
-        private static bool WmiOperation(string className, Action<ManagementObject> action)
+        public static bool WmiOperation(string className, Action<ManagementObject> action, string id)
         {
             var succeed = false;
-            using (var searcher = WmiMonitor.GetWmiSearcher("WmiMonitorID"))
+            using (var searcher = GetWmiSearcher(className))
             using (var instances = searcher.Get())
             {
                 foreach (var instance in instances)
                 {
+                    if (!MatchDevice(instance, id))
+                    {
+                        continue;
+                    }
+
                     succeed = true;
                     action.Invoke((ManagementObject) instance);
                 }
             }
 
             return succeed;
+        }
+
+        public static ManagementObjectSearcher GetWmiSearcher(string queryStr)
+        {
+            var scope = new ManagementScope("root\\WMI");
+            var query = new SelectQuery(queryStr);
+
+            return new ManagementObjectSearcher(scope, query);
+        }
+
+
+        private static bool MatchDevice(ManagementBaseObject instance, string id)
+        {
+            // LOL I don't care the real sequence
+            var instanceName = (string) instance["InstanceName"];
+            return id.Contains(instanceName) || instanceName.Contains(id);
         }
     }
 }

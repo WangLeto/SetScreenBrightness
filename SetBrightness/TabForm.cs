@@ -33,7 +33,6 @@ namespace SetBrightness
 
         public TabForm()
         {
-            new WmiMonitorManager().EnumMonitor();
             InitializeComponent();
             _monitorsManager = new MonitorsManager(AddPage, CleanPages);
 
@@ -277,8 +276,7 @@ namespace SetBrightness
                     Debug.WriteLine(nameof(WmDisplaychange));
                     Action<bool, NotifyIcon> action = _monitorsManager.RefreshMonitors;
                     DelayTasks.OrderTask(action, 2);
-                    DelayTasks.OrderTask(action, 2);
-                    DelayTasks.OrderTask(action, 5);
+                    DelayTasks.OrderTask(action, 4);
                     break;
             }
         }
@@ -458,10 +456,7 @@ namespace SetBrightness
         {
             _monitors.Clear();
 
-            await Task.Run(() => _monitors.AddRange(DdcCiMonitorManager.GetMonitorHandles()));
-
-            // todo use a manager class
-            _monitors.Add(new WmiMonitor(@"DISPLAY\SDC4C48\4&2e490a7&0&UID265988_0"));
+            await Task.Run(() => _monitors.AddRange(AllMonitorManager.GetAllMonitors()));
 
             MapMonitorsToPages();
             if (showNotify)
