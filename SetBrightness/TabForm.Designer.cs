@@ -124,7 +124,6 @@
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.TopMost = true;
-            this.Deactivate += new System.EventHandler(this.TabForm_Deactivate);
             this.VisibleChanged += new System.EventHandler(this.TabForm_VisibleChanged);
             this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);

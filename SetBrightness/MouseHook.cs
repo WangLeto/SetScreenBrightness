@@ -23,6 +23,7 @@ namespace SetBrightness
         public delegate void MouseHookCallback(Msllhookstruct mouseStruct, out bool goOn);
 
         public event MouseHookCallback MouseWheel;
+        public event MouseHookCallback MouseLDown;
 
         private IntPtr _hookId = IntPtr.Zero;
 
@@ -59,9 +60,9 @@ namespace SetBrightness
         /// </summary>
         /// <param name="proc">Internal callback function</param>
         /// <returns>Hook ID</returns>
-        private IntPtr SetHook(MouseHookHandler proc)
+        private static IntPtr SetHook(MouseHookHandler proc)
         {
-            using (ProcessModule module = Process.GetCurrentProcess().MainModule)
+            using (var module = Process.GetCurrentProcess().MainModule)
                 return SetWindowsHookEx(WhMouseLl, proc, GetModuleHandle(module.ModuleName), 0);
         }
 
@@ -85,6 +86,18 @@ namespace SetBrightness
                     {
                         bool @continue;
                         MouseWheel(msllhookstruct, out @continue);
+                        if (!@continue)
+                        {
+                            return 1;
+                        }
+                    }
+
+                    break;
+                case MouseMessages.WmLbuttonDown:
+                    if (MouseLDown != null)
+                    {
+                        bool @continue;
+                        MouseLDown(msllhookstruct, out @continue);
                         if (!@continue)
                         {
                             return 1;

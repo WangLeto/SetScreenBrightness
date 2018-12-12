@@ -48,9 +48,33 @@ namespace SetBrightness
             tabControl.ControlAdded += (sender, args) => loadingTipLabel.Hide();
 
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
+            _mouseHook.MouseLDown += _mouseHook_MouseLDown;
             _mouseHook.Install();
             Application.ApplicationExit += Application_ApplicationExit;
             _monitorsManager.RefreshMonitors();
+        }
+
+        private void _mouseHook_MouseLDown(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
+        {
+            Debug.WriteLine("click");
+            goOn = true;
+
+            var point = mouseStruct.pt;
+//            Debug.WriteLine(point.x + " " + point.y);
+//            Debug.WriteLine(Left + " " + Right + "\\ " + Top + " " + Bottom);
+            if (!Visible || PointInForm(point.x, point.y))
+            {
+                return;
+            }
+
+            _canChangeVisible = false;
+            _timer.Start();
+            Visible = false;
+        }
+
+        private bool PointInForm(int x, int y)
+        {
+            return Left <= x && x <= Right && Top <= y && y <= Bottom;
         }
 
         public sealed override string Text
@@ -195,18 +219,6 @@ namespace SetBrightness
             {
                 Visible = !Visible;
             }
-        }
-
-        private void TabForm_Deactivate(object sender, EventArgs e)
-        {
-            if (!Visible)
-            {
-                return;
-            }
-
-            _canChangeVisible = false;
-            _timer.Start();
-            Visible = false;
         }
 
         private void TabForm_VisibleChanged(object sender, EventArgs e)
