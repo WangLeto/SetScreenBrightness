@@ -24,6 +24,7 @@ namespace SetBrightness
 
         public event MouseHookCallback MouseWheel;
         public event MouseHookCallback MouseLDown;
+        public event MouseHookCallback MouseRDown;
 
         private IntPtr _hookId = IntPtr.Zero;
 
@@ -82,32 +83,38 @@ namespace SetBrightness
             switch ((MouseMessages) wParam)
             {
                 case MouseMessages.WmMouseWheel:
-                    if (MouseWheel != null)
+                    if (!MsgHandle(MouseWheel, msllhookstruct))
                     {
-                        bool @continue;
-                        MouseWheel(msllhookstruct, out @continue);
-                        if (!@continue)
-                        {
-                            return 1;
-                        }
+                        return 1;
                     }
 
                     break;
                 case MouseMessages.WmLbuttonDown:
-                    if (MouseLDown != null)
+                    if (!MsgHandle(MouseLDown, msllhookstruct))
                     {
-                        bool @continue;
-                        MouseLDown(msllhookstruct, out @continue);
-                        if (!@continue)
-                        {
-                            return 1;
-                        }
+                        return 1;
                     }
 
+                    break;
+                case MouseMessages.WmRbuttonDown:
+                    if (!MsgHandle(MouseRDown, msllhookstruct))
+                    {
+                        return 1;
+                    }
+
+                    break;
+                case MouseMessages.WmMbuttonDown:
                     break;
             }
 
             return CallNextHookEx(_hookId, nCode, wParam, lParam);
+        }
+
+        private static bool MsgHandle(MouseHookCallback callback, Msllhookstruct msllhookstruct)
+        {
+            bool @continue;
+            callback(msllhookstruct, out @continue);
+            return @continue;
         }
 
         #region WinAPI

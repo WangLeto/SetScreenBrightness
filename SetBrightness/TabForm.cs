@@ -14,6 +14,9 @@ namespace SetBrightness
 {
     public partial class TabForm : Form
     {
+        // todo 调整标签页顺序功能
+        // todo 应对任务栏特殊位置的方法
+
         #region declaration
 
         private const string PageControlName = nameof(TabPageTemplate);
@@ -49,6 +52,7 @@ namespace SetBrightness
 
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.MouseLDown += _mouseHook_MouseLDown;
+            _mouseHook.MouseRDown += _mouseHook_MouseLDown;
             _mouseHook.Install();
             Application.ApplicationExit += Application_ApplicationExit;
             _monitorsManager.RefreshMonitors();
@@ -56,12 +60,9 @@ namespace SetBrightness
 
         private void _mouseHook_MouseLDown(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
         {
-            Debug.WriteLine("click");
             goOn = true;
 
             var point = mouseStruct.pt;
-//            Debug.WriteLine(point.x + " " + point.y);
-//            Debug.WriteLine(Left + " " + Right + "\\ " + Top + " " + Bottom);
             if (!Visible || PointInForm(point.x, point.y))
             {
                 return;
