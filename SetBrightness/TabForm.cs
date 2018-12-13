@@ -15,7 +15,6 @@ namespace SetBrightness
     public partial class TabForm : Form
     {
         // todo 调整标签页顺序功能
-        // todo 应对任务栏特殊位置的方法
 
         #region declaration
 
@@ -237,15 +236,21 @@ namespace SetBrightness
         {
             var screen = Screen.FromHandle(Handle);
 
-            var left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
-            var leftByCursor = Cursor.Position.X - Width / 2;
-            Left = left;
+            Left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
+            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 2;
             if (useCursorPos)
             {
-                Left = Math.Min(left, leftByCursor);
+                Left = Cursor.Position.X;
+                var leftOff = screen.Bounds.X + screen.Bounds.Width - Width - 50;
+                Left = Math.Min(leftOff, Left);
+
+                Top = Cursor.Position.Y;
+                var topOff = screen.Bounds.Y + screen.Bounds.Height - Height - 20;
+                Top = Math.Min(topOff, Top);
             }
 
-            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 2;
+            Debug.WriteLine(Left + " " + Top);
+
             Activate();
         }
 
