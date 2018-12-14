@@ -67,7 +67,6 @@
             this.brightTrackbar.Name = "brightTrackbar";
             this.brightTrackbar.Size = new System.Drawing.Size(370, 30);
             this.brightTrackbar.TabIndex = 1;
-            this.brightTrackbar.TabStop = false;
             this.brightTrackbar.TickFrequency = 5;
             this.brightTrackbar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.brightTrackbar_MouseDown);
             // 
@@ -78,8 +77,7 @@
             this.contrastTrackbar.Maximum = 100;
             this.contrastTrackbar.Name = "contrastTrackbar";
             this.contrastTrackbar.Size = new System.Drawing.Size(370, 30);
-            this.contrastTrackbar.TabIndex = 1;
-            this.contrastTrackbar.TabStop = false;
+            this.contrastTrackbar.TabIndex = 2;
             this.contrastTrackbar.TickFrequency = 5;
             this.contrastTrackbar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.contrastTrackbar_MouseDown);
             // 

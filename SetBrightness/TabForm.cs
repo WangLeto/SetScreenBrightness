@@ -39,6 +39,10 @@ namespace SetBrightness
 
             _checkManager = new CheckManager(contextMenuStrip);
             AdjustHeight(SettingManager.UseContrast);
+            if (SettingManager.UseHotKey)
+            {
+                hotKeyWinAltBToolStripMenuItem.Checked = RegistryHotKey();
+            }
 
             _timer.Elapsed += (sender, args) =>
             {
@@ -56,11 +60,7 @@ namespace SetBrightness
             Application.ApplicationExit += Application_ApplicationExit;
             _monitorsManager.RefreshMonitors();
 
-            _hook.KeyPressed += (sender, args) =>
-            {
-                Show();
-                Activate();
-            };
+            _hook.KeyPressed += (sender, args) => { ShowFormFixed(); };
         }
 
         private void _mouseHook_MouseLDown(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
@@ -179,7 +179,7 @@ namespace SetBrightness
         }
 
         #endregion
-        
+
         #region adjust heigth depend on whether use contrast
 
         private const int TallHeight = 137;
@@ -267,14 +267,7 @@ namespace SetBrightness
                     if (mystr.LpData == MessageSender.Msg)
                     {
                         notifyIcon.ShowBalloonTip(1500, "运行中", Application.ProductName + "已在运行", ToolTipIcon.Info);
-
-                        UpdateTrackbarValue();
-                        RelocateForm(false);
-
-                        VisibleChanged -= TabForm_VisibleChanged;
-                        Visible = true;
-                        Activate();
-                        VisibleChanged += TabForm_VisibleChanged;
+                        ShowFormFixed();
                     }
 
                     break;
@@ -351,7 +344,7 @@ namespace SetBrightness
         {
             _monitorsManager.RefreshMonitors(true, notifyIcon);
         }
-        
+
         private bool RegistryHotKey()
         {
             try
@@ -389,9 +382,20 @@ namespace SetBrightness
             }
         }
 
-        private void ShowForm(bool byCursor = true)
+        /// <summary>
+        /// 显示窗口，不使用鼠标位置
+        /// </summary>
+        private void ShowFormFixed()
         {
+            VisibleChanged -= TabForm_VisibleChanged;
+            UpdateTrackbarValue();
+            RelocateForm(false);
+            Activate();
+            Visible = true;
+            VisibleChanged += TabForm_VisibleChanged;
         }
+
+        #region 右键菜单 check
 
         private void hotKeyWinAltBToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -423,7 +427,7 @@ namespace SetBrightness
             // set tabpage enable
             foreach (TabPage page in tabControl.TabPages)
             {
-                ((TabPageTemplate)page.Controls[PageControlName]).UseContrast = useContrast;
+                ((TabPageTemplate) page.Controls[PageControlName]).UseContrast = useContrast;
             }
         }
 
@@ -438,6 +442,8 @@ namespace SetBrightness
                 notifyIcon.ShowBalloonTip(3500, "设置成功", "如果移动程序位置，需要重新设置", ToolTipIcon.Info);
             }
         }
+
+        #endregion
     }
 
     internal class CheckManager
