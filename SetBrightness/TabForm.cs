@@ -228,6 +228,7 @@ namespace SetBrightness
 
             UpdateTrackbarValue();
             RelocateForm();
+            Activate();
         }
 
         private void RelocateForm(bool useCursorPos = true)
@@ -289,6 +290,7 @@ namespace SetBrightness
 
                         VisibleChanged -= TabForm_VisibleChanged;
                         Visible = true;
+                        Activate();
                         VisibleChanged += TabForm_VisibleChanged;
                     }
 
