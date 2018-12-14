@@ -14,8 +14,6 @@ namespace SetBrightness
 {
     public partial class TabForm : Form
     {
-        // todo 调整标签页顺序功能
-
         #region declaration
 
         private const string PageControlName = nameof(TabPageTemplate);
@@ -237,7 +235,7 @@ namespace SetBrightness
             var screen = Screen.FromHandle(Handle);
 
             Left = screen.WorkingArea.X + screen.WorkingArea.Width - Width - 40;
-            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 2;
+            Top = screen.WorkingArea.Y + screen.WorkingArea.Height - Height - 5;
             if (useCursorPos)
             {
                 Left = Cursor.Position.X;
@@ -368,6 +366,24 @@ namespace SetBrightness
         {
             _monitorsManager.RefreshMonitors(true, notifyIcon);
         }
+
+        public void hotkeyWinAltBToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+        {
+            // todo
+        }
+
+        // global hook cannot monitor administrator application
+        private void TabForm_Deactivate(object sender, EventArgs e)
+        {
+            if (!Visible)
+            {
+                return;
+            }
+
+            _canChangeVisible = false;
+            _timer.Start();
+            Visible = false;
+        }
     }
 
     internal class CheckManager
@@ -375,6 +391,7 @@ namespace SetBrightness
         private readonly TabForm _form;
         private readonly ToolStripMenuItem _autoStartMenuItem;
         private readonly ToolStripMenuItem _useContrastMenuItem;
+        private readonly ToolStripMenuItem _hotkeyWinAltBToolStripMenuItem;
         private readonly Regedit _regedit;
 
         public CheckManager(TabForm tabForm, ToolStrip menuStrip)
@@ -383,6 +400,7 @@ namespace SetBrightness
             _regedit = new Regedit();
             _autoStartMenuItem = (ToolStripMenuItem) menuStrip.Items["autoStartToolStripMenuItem"];
             _useContrastMenuItem = (ToolStripMenuItem) menuStrip.Items["useContrastToolStripMenuItem"];
+            _hotkeyWinAltBToolStripMenuItem = (ToolStripMenuItem) menuStrip.Items["hotkeyWinAltBToolStripMenuItem"];
             LoadState();
         }
 
@@ -390,13 +408,16 @@ namespace SetBrightness
         {
             _autoStartMenuItem.CheckStateChanged -= _form.autoStartToolStripMenuItem_CheckStateChanged;
             _useContrastMenuItem.CheckStateChanged -= _form.useContrastToolStripMenuItem_CheckStateChanged;
+            _hotkeyWinAltBToolStripMenuItem.CheckStateChanged -= _form.hotkeyWinAltBToolStripMenuItem_CheckStateChanged;
 
             _autoStartMenuItem.Checked = _regedit.IsAutoStart;
             _useContrastMenuItem.Checked = SettingManager.UseContrast;
+            _hotkeyWinAltBToolStripMenuItem.Checked = SettingManager.UseHotKey;
             _form.AdjustHeight(SettingManager.UseContrast);
 
             _autoStartMenuItem.CheckStateChanged += _form.autoStartToolStripMenuItem_CheckStateChanged;
             _useContrastMenuItem.CheckStateChanged += _form.useContrastToolStripMenuItem_CheckStateChanged;
+            _hotkeyWinAltBToolStripMenuItem.CheckStateChanged += _form.hotkeyWinAltBToolStripMenuItem_CheckStateChanged;
         }
 
         public void CheckAutoStart(bool enableAutoStart)
@@ -450,6 +471,16 @@ namespace SetBrightness
             set
             {
                 Settings.Default.use_contrast = value;
+                Settings.Default.Save();
+            }
+        }
+
+        public static bool UseHotKey
+        {
+            get { return Settings.Default.use_hotkey; }
+            set
+            {
+                Settings.Default.use_hotkey = value;
                 Settings.Default.Save();
             }
         }
