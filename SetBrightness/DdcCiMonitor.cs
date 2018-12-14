@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using PhysicalMonitorHandle = System.IntPtr;
 
 namespace SetBrightness
@@ -19,6 +21,16 @@ namespace SetBrightness
         [DllImport("Dxva2.dll")]
         private static extern bool GetVCPFeatureAndVCPFeatureReply(PhysicalMonitorHandle hMonitor, byte bVcpCode,
             out LpmcVcpCodeType pvct, out uint pdwCurrentValue, out uint pdwMaximumValue);
+
+        [DllImport("Dxva2.dll")]
+        private static extern bool GetCapabilitiesStringLength(
+            PhysicalMonitorHandle hMonitor, out uint pdwCapabilitiesStringLengthInCharacters);
+
+        [DllImport("Dxva2.dll")]
+        private static extern bool CapabilitiesRequestAndCapabilitiesReply(
+            PhysicalMonitorHandle hMonitor,
+            [MarshalAs(UnmanagedType.LPStr)] [Out] StringBuilder pszAsciiCapabilitiesString,
+            uint dwCapabilitiesStringLengthInCharacters);
 
         private enum LpmcVcpCodeType
         {
@@ -62,14 +74,93 @@ namespace SetBrightness
             }
             else
             {
-                CanUse = TestLowLevelCapabilities();
+                _isLowLevel = true;
+                TestLowLevelCapabilities();
             }
         }
 
-        private bool TestLowLevelCapabilities()
+        private void TestLowLevelCapabilities()
         {
-            // todo test low level
-            return false;
+            uint strLength;
+            if (!GetCapabilitiesStringLength(_physicalMonitorHandle, out strLength))
+            {
+                return;
+            }
+
+            var str = new StringBuilder((int) strLength);
+            CapabilitiesRequestAndCapabilitiesReply(_physicalMonitorHandle, str, strLength);
+
+            var capabilitiesStr = str.ToString();
+            var vcpIndex = capabilitiesStr.IndexOf("vcp", StringComparison.OrdinalIgnoreCase);
+            string vcpStr;
+            try
+            {
+                vcpStr = capabilitiesStr.Substring(vcpIndex + 4);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return;
+            }
+
+            var ignoreBrace = 0;
+            var vcpCode = "";
+            foreach (var c in vcpStr)
+            {
+                if (c == "("[0])
+                {
+                    if (CheckVcpCode(ref vcpCode))
+                    {
+                        return;
+                    }
+
+                    ignoreBrace++;
+                }
+                else if (c == ")"[0])
+                {
+                    if (CheckVcpCode(ref vcpCode))
+                    {
+                        return;
+                    }
+
+                    ignoreBrace--;
+                }
+                else if (ignoreBrace > 0)
+                {
+                    continue;
+                }
+                else if (c == " "[0])
+                {
+                    if (CheckVcpCode(ref vcpCode))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    vcpCode += c;
+                }
+
+                if (ignoreBrace < 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        private bool CheckVcpCode(ref string vcpCode)
+        {
+            switch (vcpCode)
+            {
+                case "10":
+                    CanUse = true;
+                    break;
+                case "12":
+                    SupportContrast = true;
+                    break;
+            }
+
+            vcpCode = "";
+            return CanUse && SupportContrast;
         }
 
         private delegate bool NativeHighLevelGet(PhysicalMonitorHandle hMonitor,
@@ -100,7 +191,7 @@ namespace SetBrightness
             RestrictValue(ref brightness);
             if (_isLowLevel)
             {
-                SetVCPFeature(_physicalMonitorHandle, VcpLuminanceCode, (byte) brightness);
+                SetVCPFeature(_physicalMonitorHandle, VcpLuminanceCode, (uint) brightness);
             }
             else
             {
@@ -135,7 +226,8 @@ namespace SetBrightness
                 : HighLevelGetCurrentValue(GetMonitorContrast);
         }
 
-        private bool _tested = false;
+        private bool _tested;
+
         public override bool IsSameMonitor(Monitor monitor)
         {
             // not found effective way to detect the same monitor handle
