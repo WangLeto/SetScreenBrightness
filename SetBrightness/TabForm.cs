@@ -25,7 +25,8 @@ namespace SetBrightness
 
         private readonly MouseHook _mouseHook = new MouseHook();
         private readonly MonitorsManager _monitorsManager;
-        public static string WindowName = "亮度调节";
+        public const string WindowName = "亮度调节";
+        KeyboardHook _hook = new KeyboardHook();
 
         #endregion
 
@@ -36,7 +37,8 @@ namespace SetBrightness
             Text = notifyIcon.Text = WindowName;
             _monitorsManager = new MonitorsManager(AddPage, CleanPages);
 
-            _checkManager = new CheckManager(this, contextMenuStrip);
+            _checkManager = new CheckManager(contextMenuStrip);
+            AdjustHeight(SettingManager.UseContrast);
 
             _timer.Elapsed += (sender, args) =>
             {
@@ -53,6 +55,12 @@ namespace SetBrightness
             _mouseHook.Install();
             Application.ApplicationExit += Application_ApplicationExit;
             _monitorsManager.RefreshMonitors();
+
+            _hook.KeyPressed += (sender, args) =>
+            {
+                Show();
+                Activate();
+            };
         }
 
         private void _mouseHook_MouseLDown(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
@@ -154,6 +162,11 @@ namespace SetBrightness
             _preventContextMenuStripClose = true;
         }
 
+        private void hotKeyWinAltBToolStripMenuItem_MouseDown(object sender, MouseEventArgs e)
+        {
+            _preventContextMenuStripClose = true;
+        }
+
         private void contextMenuStrip_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
             if (!_preventContextMenuStripClose)
@@ -166,37 +179,7 @@ namespace SetBrightness
         }
 
         #endregion
-
-        public void autoStartToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
-        {
-            var tsmi = sender as ToolStripMenuItem;
-            var enableAutoStart = tsmi != null && tsmi.CheckState == CheckState.Checked;
-            _checkManager.CheckAutoStart(enableAutoStart);
-
-            if (enableAutoStart)
-            {
-                notifyIcon.ShowBalloonTip(3500, "设置成功", "如果移动程序位置，需要重新设置", ToolTipIcon.Info);
-            }
-        }
-
-        public void useContrastToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
-        {
-            var tsmi = sender as ToolStripMenuItem;
-            var useContrast = tsmi != null && tsmi.CheckState == CheckState.Checked;
-
-            // edit setting file
-            CheckManager.CheckUseContrast(useContrast);
-
-            // set form height
-            AdjustHeight(useContrast);
-
-            // set tabpage enable
-            foreach (TabPage page in tabControl.TabPages)
-            {
-                ((TabPageTemplate) page.Controls[PageControlName]).UseContrast = useContrast;
-            }
-        }
-
+        
         #region adjust heigth depend on whether use contrast
 
         private const int TallHeight = 137;
@@ -368,10 +351,21 @@ namespace SetBrightness
         {
             _monitorsManager.RefreshMonitors(true, notifyIcon);
         }
-
-        public void hotkeyWinAltBToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+        
+        private bool RegistryHotKey()
         {
-            // todo
+            try
+            {
+                _hook.RegisterHotKey(SetBrightness.ModifierKeys.Control | SetBrightness.ModifierKeys.Win, Keys.B);
+                SettingManager.UseHotKey = true;
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                notifyIcon?.ShowBalloonTip(1000, "错误", "快捷键可能已被占用", ToolTipIcon.Error);
+                SettingManager.UseHotKey = false;
+                return false;
+            }
         }
 
         // global hook cannot monitor administrator application
@@ -386,40 +380,87 @@ namespace SetBrightness
             _timer.Start();
             Visible = false;
         }
+
+        private void TabForm_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == Convert.ToChar(Keys.Escape))
+            {
+                Hide();
+            }
+        }
+
+        private void ShowForm(bool byCursor = true)
+        {
+        }
+
+        private void hotKeyWinAltBToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var tsmi = sender as ToolStripMenuItem;
+            var use = tsmi != null && tsmi.CheckState == CheckState.Checked;
+            if (use)
+            {
+                tsmi.Checked = RegistryHotKey();
+            }
+            else
+            {
+                _hook.UninstallHotkeys();
+                SettingManager.UseHotKey = false;
+                if (tsmi != null) tsmi.Checked = false;
+            }
+        }
+
+        private void useContrastToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var tsmi = sender as ToolStripMenuItem;
+            var useContrast = tsmi != null && tsmi.CheckState == CheckState.Checked;
+
+            // edit setting file
+            CheckManager.CheckUseContrast(useContrast);
+
+            // set form height
+            AdjustHeight(useContrast);
+
+            // set tabpage enable
+            foreach (TabPage page in tabControl.TabPages)
+            {
+                ((TabPageTemplate)page.Controls[PageControlName]).UseContrast = useContrast;
+            }
+        }
+
+        private void autoStartToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var tsmi = sender as ToolStripMenuItem;
+            var enableAutoStart = tsmi != null && tsmi.CheckState == CheckState.Checked;
+            _checkManager.CheckAutoStart(enableAutoStart);
+
+            if (enableAutoStart)
+            {
+                notifyIcon.ShowBalloonTip(3500, "设置成功", "如果移动程序位置，需要重新设置", ToolTipIcon.Info);
+            }
+        }
     }
 
     internal class CheckManager
     {
-        private readonly TabForm _form;
         private readonly ToolStripMenuItem _autoStartMenuItem;
         private readonly ToolStripMenuItem _useContrastMenuItem;
         private readonly ToolStripMenuItem _hotkeyWinAltBToolStripMenuItem;
         private readonly Regedit _regedit;
 
-        public CheckManager(TabForm tabForm, ToolStrip menuStrip)
+        public CheckManager(ToolStrip menuStrip)
         {
-            _form = tabForm;
             _regedit = new Regedit();
             _autoStartMenuItem = (ToolStripMenuItem) menuStrip.Items["autoStartToolStripMenuItem"];
             _useContrastMenuItem = (ToolStripMenuItem) menuStrip.Items["useContrastToolStripMenuItem"];
-            _hotkeyWinAltBToolStripMenuItem = (ToolStripMenuItem) menuStrip.Items["hotkeyWinAltBToolStripMenuItem"];
+            _hotkeyWinAltBToolStripMenuItem = (ToolStripMenuItem) menuStrip.Items["hotKeyWinAltBToolStripMenuItem"];
             LoadState();
         }
 
         private void LoadState()
         {
-            _autoStartMenuItem.CheckStateChanged -= _form.autoStartToolStripMenuItem_CheckStateChanged;
-            _useContrastMenuItem.CheckStateChanged -= _form.useContrastToolStripMenuItem_CheckStateChanged;
-            _hotkeyWinAltBToolStripMenuItem.CheckStateChanged -= _form.hotkeyWinAltBToolStripMenuItem_CheckStateChanged;
-
             _autoStartMenuItem.Checked = _regedit.IsAutoStart;
             _useContrastMenuItem.Checked = SettingManager.UseContrast;
             _hotkeyWinAltBToolStripMenuItem.Checked = SettingManager.UseHotKey;
-            _form.AdjustHeight(SettingManager.UseContrast);
-
-            _autoStartMenuItem.CheckStateChanged += _form.autoStartToolStripMenuItem_CheckStateChanged;
-            _useContrastMenuItem.CheckStateChanged += _form.useContrastToolStripMenuItem_CheckStateChanged;
-            _hotkeyWinAltBToolStripMenuItem.CheckStateChanged += _form.hotkeyWinAltBToolStripMenuItem_CheckStateChanged;
         }
 
         public void CheckAutoStart(bool enableAutoStart)

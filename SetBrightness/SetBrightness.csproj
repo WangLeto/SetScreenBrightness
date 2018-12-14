@@ -83,6 +83,7 @@
     <Compile Include="DdcCiMonitor.cs" />
     <Compile Include="DdcCiMonitorManager.cs" />
     <Compile Include="Flags.cs" />
+    <Compile Include="KeyBoardHook.cs" />
     <Compile Include="MessageSender.cs" />
     <Compile Include="Monitor.cs" />
     <Compile Include="MouseHook.cs" />

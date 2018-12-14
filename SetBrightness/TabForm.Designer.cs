@@ -35,7 +35,7 @@
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.autoStartToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.useContrastToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hotkeyWinAltBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.hotKeyWinAltBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rescanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadingTipLabel = new System.Windows.Forms.Label();
@@ -63,50 +63,51 @@
             this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.autoStartToolStripMenuItem,
             this.useContrastToolStripMenuItem,
-            this.hotkeyWinAltBToolStripMenuItem,
+            this.hotKeyWinAltBToolStripMenuItem,
             this.rescanToolStripMenuItem,
             this.quitToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(196, 114);
+            this.contextMenuStrip.Size = new System.Drawing.Size(226, 114);
             this.contextMenuStrip.Closing += new System.Windows.Forms.ToolStripDropDownClosingEventHandler(this.contextMenuStrip_Closing);
             // 
             // autoStartToolStripMenuItem
             // 
             this.autoStartToolStripMenuItem.CheckOnClick = true;
             this.autoStartToolStripMenuItem.Name = "autoStartToolStripMenuItem";
-            this.autoStartToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.autoStartToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
             this.autoStartToolStripMenuItem.Text = "开机启动";
-            this.autoStartToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.autoStartToolStripMenuItem_CheckStateChanged);
+            this.autoStartToolStripMenuItem.Click += new System.EventHandler(this.autoStartToolStripMenuItem_Click);
             this.autoStartToolStripMenuItem.MouseDown += new System.Windows.Forms.MouseEventHandler(this.autoStartToolStripMenuItem_MouseDown);
             // 
             // useContrastToolStripMenuItem
             // 
             this.useContrastToolStripMenuItem.CheckOnClick = true;
             this.useContrastToolStripMenuItem.Name = "useContrastToolStripMenuItem";
-            this.useContrastToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.useContrastToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
             this.useContrastToolStripMenuItem.Text = "启用对比度";
-            this.useContrastToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.useContrastToolStripMenuItem_CheckStateChanged);
+            this.useContrastToolStripMenuItem.Click += new System.EventHandler(this.useContrastToolStripMenuItem_Click);
             this.useContrastToolStripMenuItem.MouseDown += new System.Windows.Forms.MouseEventHandler(this.useContrastToolStripMenuItem_MouseDown);
             // 
-            // hotkeyWinAltBToolStripMenuItem
+            // hotKeyWinAltBToolStripMenuItem
             // 
-            this.hotkeyWinAltBToolStripMenuItem.CheckOnClick = true;
-            this.hotkeyWinAltBToolStripMenuItem.Name = "hotkeyWinAltBToolStripMenuItem";
-            this.hotkeyWinAltBToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
-            this.hotkeyWinAltBToolStripMenuItem.Text = "快捷键（win+alt+B）";
-            this.hotkeyWinAltBToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.hotkeyWinAltBToolStripMenuItem_CheckStateChanged);
+            this.hotKeyWinAltBToolStripMenuItem.CheckOnClick = true;
+            this.hotKeyWinAltBToolStripMenuItem.Name = "hotKeyWinAltBToolStripMenuItem";
+            this.hotKeyWinAltBToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
+            this.hotKeyWinAltBToolStripMenuItem.Text = "使用快捷键（win+Ctrl+B）";
+            this.hotKeyWinAltBToolStripMenuItem.Click += new System.EventHandler(this.hotKeyWinAltBToolStripMenuItem_Click);
+            this.hotKeyWinAltBToolStripMenuItem.MouseDown += new System.Windows.Forms.MouseEventHandler(this.hotKeyWinAltBToolStripMenuItem_MouseDown);
             // 
             // rescanToolStripMenuItem
             // 
             this.rescanToolStripMenuItem.Name = "rescanToolStripMenuItem";
-            this.rescanToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.rescanToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
             this.rescanToolStripMenuItem.Text = "重新检测屏幕";
             this.rescanToolStripMenuItem.Click += new System.EventHandler(this.rescanToolStripMenuItem_Click);
             // 
             // quitToolStripMenuItem
             // 
             this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            this.quitToolStripMenuItem.Size = new System.Drawing.Size(195, 22);
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
             this.quitToolStripMenuItem.Text = "退出";
             this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
             // 
@@ -129,6 +130,7 @@
             this.Controls.Add(this.tabControl);
             this.Font = new System.Drawing.Font("微软雅黑", 9F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "TabForm";
             this.ShowIcon = false;
@@ -136,6 +138,7 @@
             this.TopMost = true;
             this.Deactivate += new System.EventHandler(this.TabForm_Deactivate);
             this.VisibleChanged += new System.EventHandler(this.TabForm_VisibleChanged);
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TabForm_KeyPress);
             this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -152,6 +155,6 @@
         private System.Windows.Forms.ToolStripMenuItem rescanToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.Label loadingTipLabel;
-        private System.Windows.Forms.ToolStripMenuItem hotkeyWinAltBToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem hotKeyWinAltBToolStripMenuItem;
     }
 }

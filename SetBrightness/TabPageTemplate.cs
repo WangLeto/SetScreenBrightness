@@ -186,7 +186,6 @@ namespace SetBrightness
             // https://referencesource.microsoft.com/#System.Windows.Forms/winforms/Managed/System/WinForms/TrackBarRenderer.cs
             const int padding = 8;
             var value = (x - padding) / (trackBar.Width - 2 * padding) * (max - min);
-            Debug.WriteLine("click x: " + x + "\tminus padding: " + (x - padding) + "\tvalue: " + value);
             value = value > max ? max : value < min ? min : value;
             return Convert.ToInt32(value);
         }

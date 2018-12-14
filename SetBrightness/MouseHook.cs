@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace SetBrightness
 {
