@@ -43,18 +43,22 @@ namespace SetBrightness
             brightLabel.DataBindings.Add("Text", brightTrackbar, "Value");
             contrastLabel.DataBindings.Add("Text", contrastTrackbar, "Value");
 
-            brightTrackbar.ValueChanged += (sender, e) =>
-            {
-                var value = brightTrackbar.Value;
-                new Thread(() => _setQueue.Add(value, true)).Start();
-            };
-            contrastTrackbar.ValueChanged += (sender, e) =>
-            {
-                var value = contrastTrackbar.Value;
-                new Thread(() => _setQueue.Add(value, false)).Start();
-            };
+            brightTrackbar.ValueChanged += BrightTrackbar_ValueChanged;
+            contrastTrackbar.ValueChanged += ContrastTrackbar_ValueChanged;
         }
-        
+
+        private void ContrastTrackbar_ValueChanged(object sender, EventArgs e)
+        {
+            var value = contrastTrackbar.Value;
+            new Thread(() => _setQueue.Add(value, false)).Start();
+        }
+
+        private void BrightTrackbar_ValueChanged(object sender, EventArgs e)
+        {
+            var value = brightTrackbar.Value;
+            new Thread(() => _setQueue.Add(value, true)).Start();
+        }
+
         public bool UseContrast
         {
             set
@@ -106,8 +110,10 @@ namespace SetBrightness
             try
             {
                 await Task.WhenAll(
-                    Task.Run(() => SafeSetTrackBar(brightTrackbar, _monitor.GetBrightness())),
-                    Task.Run(() => SafeSetTrackBar(contrastTrackbar, _monitor.GetContrast())));
+                    Task.Run(() =>
+                        SafeSetTrackBar(brightTrackbar, _monitor.GetBrightness(), BrightTrackbar_ValueChanged)),
+                    Task.Run(() =>
+                        SafeSetTrackBar(contrastTrackbar, _monitor.GetContrast(), ContrastTrackbar_ValueChanged)));
             }
             catch (InvalidMonitorException e)
             {
@@ -116,15 +122,17 @@ namespace SetBrightness
             }
         }
 
-        private void SafeSetTrackBar(TrackBar trackBar, int value)
+        private void SafeSetTrackBar(TrackBar trackBar, int value, EventHandler handler)
         {
             if (trackBar.InvokeRequired)
             {
-                Invoke(new Action<TrackBar, int>(SafeSetTrackBar), trackBar, value);
+                Invoke(new Action<TrackBar, int, EventHandler>(SafeSetTrackBar), trackBar, value, handler);
             }
             else
             {
+                trackBar.ValueChanged -= handler;
                 trackBar.Value = value;
+                trackBar.ValueChanged += handler;
             }
         }
 

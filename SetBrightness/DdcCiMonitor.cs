@@ -171,14 +171,14 @@ namespace SetBrightness
             ref short pdwMinimumBrightness, ref short pdwCurrentBrightness, ref short pdwMaximumBrightness);
 
         [DllImport("dxva2.dll")]
-        private static extern bool SetMonitorBrightness(PhysicalMonitorHandle hMonitor, short brightness);
+        private static extern bool SetMonitorBrightness(PhysicalMonitorHandle hMonitor, uint brightness);
 
         [DllImport("dxva2.dll")]
         private static extern bool GetMonitorContrast(PhysicalMonitorHandle hMonitor, ref short pdwMinimumContrast,
             ref short pdwCurrentContrast, ref short pdwMaximumContrast);
 
         [DllImport("dxva2.dll")]
-        private static extern bool SetMonitorContrast(PhysicalMonitorHandle hMonitor, short brightness);
+        private static extern bool SetMonitorContrast(PhysicalMonitorHandle hMonitor, uint brightness);
 
         private static void RestrictValue(ref int value)
         {
@@ -195,7 +195,7 @@ namespace SetBrightness
             }
             else
             {
-                SetMonitorBrightness(_physicalMonitorHandle, (short) brightness);
+                SetMonitorBrightness(_physicalMonitorHandle, (uint) brightness);
             }
         }
 
@@ -208,7 +208,7 @@ namespace SetBrightness
             }
             else
             {
-                SetMonitorContrast(_physicalMonitorHandle, (short) contrast);
+                SetMonitorContrast(_physicalMonitorHandle, (uint) contrast);
             }
         }
 
