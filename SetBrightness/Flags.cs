@@ -2,17 +2,6 @@ using System;
 
 namespace SetBrightness
 {
-    partial class AllMonitorInfo
-    {
-        [Flags]
-        private enum DisplayDeviceFlag : uint
-        {
-            //Represents a pseudo device used to mirror application drawing for remoting or other purposes.
-            DisplayDeviceMirroringDriver = 0x00000008,
-            DisplayDeviceActive = 0x00000001
-        }
-    }
-
     partial class DdcCiMonitor
     {
         [Flags]
