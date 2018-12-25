@@ -270,7 +270,17 @@ namespace SetBrightness
 
         private void UpdateTrackbarValue()
         {
-            ((TabPageTemplate) tabControl.SelectedTab?.Controls[PageControlName])?.UpdateValues();
+            var selectedTab = tabControl.SelectedTab;
+            if (selectedTab == null)
+            {
+                return;
+            }
+
+            var tabPageTemplate = selectedTab.Controls.Find(PageControlName, true);
+            if (tabPageTemplate.Length > 0)
+            {
+                ((TabPageTemplate) tabPageTemplate[0]).UpdateValues();
+            }
         }
 
         #region handle application start twice
@@ -414,10 +424,11 @@ namespace SetBrightness
         private void ShowFormFixed()
         {
             VisibleChanged -= TabForm_VisibleChanged;
+            SelectPreferTab();
             UpdateTrackbarValue();
             RelocateForm(false);
-            Activate();
             Visible = true;
+            Activate();
             VisibleChanged += TabForm_VisibleChanged;
         }
 
