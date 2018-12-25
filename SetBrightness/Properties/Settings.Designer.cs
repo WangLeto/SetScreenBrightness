@@ -46,5 +46,17 @@ namespace SetBrightness.Properties {
                 this["use_hotkey"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string prefer_monitor {
+            get {
+                return ((string)(this["prefer_monitor"]));
+            }
+            set {
+                this["prefer_monitor"] = value;
+            }
+        }
     }
 }

@@ -209,5 +209,25 @@ namespace SetBrightness
         }
 
         #endregion
+
+        public void ShowTabPageContextMenuStrip()
+        {
+            preferMonitorToolStripMenuItem.CheckState = MonitorsManager.PreferMonitorId().Equals(_monitor.Id)
+                ? CheckState.Checked
+                : CheckState.Unchecked;
+
+            tabPageContextMenuStrip.Show(Cursor.Position);
+        }
+
+        private void pinTabPageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var haveSetPrefer = preferMonitorToolStripMenuItem.CheckState == CheckState.Checked;
+            MonitorsManager.SetPreferMonitor(haveSetPrefer ? _monitor.Id : "");
+        }
+
+        public bool IsPreferred(string id)
+        {
+            return _monitor.Id == id;
+        }
     }
 }

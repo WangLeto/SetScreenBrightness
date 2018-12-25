@@ -78,7 +78,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AllMonitorInfo.cs" />
     <Compile Include="AllMonitorManager.cs" />
     <Compile Include="DdcCiMonitor.cs" />
     <Compile Include="DdcCiMonitorManager.cs" />

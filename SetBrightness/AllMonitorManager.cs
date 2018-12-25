@@ -41,6 +41,7 @@ namespace SetBrightness
                 if (!string.IsNullOrEmpty(monitorId.UserFriendlyName))
                 {
                     monitor.Name = monitorId.UserFriendlyName;
+                    monitor.Id = monitorId.InstanceName;
                 }
 
                 monitorIds.Remove(monitorId);

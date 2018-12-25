@@ -55,7 +55,7 @@ namespace SetBrightness
 
             _mouseHook.MouseWheel += _mouseHook_MouseWheel;
             _mouseHook.MouseLDown += _mouseHook_MouseLDown;
-            _mouseHook.MouseRDown += _mouseHook_MouseLDown;
+            _mouseHook.MouseRDown += _mouseHook_MouseRDown;
             _mouseHook.Install();
             Application.ApplicationExit += Application_ApplicationExit;
             _monitorsManager.RefreshMonitors();
@@ -68,7 +68,7 @@ namespace SetBrightness
             goOn = true;
 
             var point = mouseStruct.pt;
-            if (!Visible || PointInForm(point.x, point.y))
+            if (!Visible || Bounds.Contains(new Point(point.x, point.y)))
             {
                 return;
             }
@@ -78,9 +78,17 @@ namespace SetBrightness
             Visible = false;
         }
 
-        private bool PointInForm(int x, int y)
+        private void _mouseHook_MouseRDown(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
         {
-            return Left <= x && x <= Right && Top <= y && y <= Bottom;
+            var point = mouseStruct.pt;
+            if (!Visible || !tabControl.SelectedTab.Bounds.Contains(PointToClient(new Point(point.x, point.y))))
+            {
+                goOn = true;
+                return;
+            }
+
+            goOn = false;
+            ((TabPageTemplate) tabControl.SelectedTab.Controls[PageControlName]).ShowTabPageContextMenuStrip();
         }
 
         public sealed override string Text
@@ -209,9 +217,30 @@ namespace SetBrightness
                 return;
             }
 
+            SelectPreferTab();
             UpdateTrackbarValue();
             RelocateForm();
             Activate();
+        }
+
+        private void SelectPreferTab()
+        {
+            var prefer = SettingManager.PreferMonitor;
+            if (prefer == "")
+            {
+                return;
+            }
+
+            foreach (TabPage page in tabControl.TabPages)
+            {
+                if (!((TabPageTemplate) page.Controls[PageControlName]).IsPreferred(prefer))
+                {
+                    continue;
+                }
+
+                tabControl.SelectTab(page);
+                return;
+            }
         }
 
         private void RelocateForm(bool useCursorPos = true)
@@ -230,8 +259,6 @@ namespace SetBrightness
                 var topOff = screen.Bounds.Y + screen.Bounds.Height - Height - 20;
                 Top = Math.Min(topOff, Top);
             }
-
-            Debug.WriteLine(Left + " " + Top);
 
             Activate();
         }
@@ -273,7 +300,6 @@ namespace SetBrightness
                     break;
                 }
                 case WmDisplaychange:
-                    Debug.WriteLine(nameof(WmDisplaychange));
                     Action<bool, NotifyIcon> action = _monitorsManager.RefreshMonitors;
                     DelayTasks.OrderTask(action, 2);
                     DelayTasks.OrderTask(action, 4);
@@ -533,6 +559,16 @@ namespace SetBrightness
                 Settings.Default.Save();
             }
         }
+
+        public static string PreferMonitor
+        {
+            get { return Settings.Default.prefer_monitor; }
+            set
+            {
+                Settings.Default.prefer_monitor = value;
+                Settings.Default.Save();
+            }
+        }
     }
 
     public class MonitorsManager
@@ -567,6 +603,16 @@ namespace SetBrightness
             {
                 notifyIcon?.ShowBalloonTip(1500, "完成", "已经重新扫描屏幕", ToolTipIcon.Info);
             }
+        }
+
+        public static void SetPreferMonitor(string id)
+        {
+            SettingManager.PreferMonitor = id;
+        }
+
+        public static string PreferMonitorId()
+        {
+            return SettingManager.PreferMonitor;
         }
     }
 }

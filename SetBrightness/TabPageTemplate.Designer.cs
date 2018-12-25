@@ -29,14 +29,18 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.brightnessNameLabel = new System.Windows.Forms.Label();
             this.contrastNameLabel = new System.Windows.Forms.Label();
             this.brightTrackbar = new System.Windows.Forms.TrackBar();
             this.contrastTrackbar = new System.Windows.Forms.TrackBar();
             this.contrastLabel = new System.Windows.Forms.Label();
             this.brightLabel = new System.Windows.Forms.Label();
+            this.tabPageContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.preferMonitorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.brightTrackbar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.contrastTrackbar)).BeginInit();
+            this.tabPageContextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // brightnessNameLabel
@@ -99,6 +103,21 @@
             this.brightLabel.TabIndex = 2;
             this.brightLabel.Text = "label3";
             // 
+            // tabPageContextMenuStrip
+            // 
+            this.tabPageContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.preferMonitorToolStripMenuItem});
+            this.tabPageContextMenuStrip.Name = "tabPageContextMenuStrip";
+            this.tabPageContextMenuStrip.Size = new System.Drawing.Size(209, 48);
+            // 
+            // preferMonitorToolStripMenuItem
+            // 
+            this.preferMonitorToolStripMenuItem.CheckOnClick = true;
+            this.preferMonitorToolStripMenuItem.Name = "preferMonitorToolStripMenuItem";
+            this.preferMonitorToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
+            this.preferMonitorToolStripMenuItem.Text = "优先显示器（实验功能）";
+            this.preferMonitorToolStripMenuItem.Click += new System.EventHandler(this.pinTabPageToolStripMenuItem_Click);
+            // 
             // TabPageTemplate
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -116,6 +135,7 @@
             this.Size = new System.Drawing.Size(380, 110);
             ((System.ComponentModel.ISupportInitialize)(this.brightTrackbar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.contrastTrackbar)).EndInit();
+            this.tabPageContextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -129,5 +149,7 @@
         private System.Windows.Forms.TrackBar contrastTrackbar;
         private System.Windows.Forms.Label contrastLabel;
         private System.Windows.Forms.Label brightLabel;
+        private System.Windows.Forms.ContextMenuStrip tabPageContextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem preferMonitorToolStripMenuItem;
     }
 }
