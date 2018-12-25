@@ -6,6 +6,18 @@ This application can be used to adjust your screens' brightness and contrast (co
 
 ![Snapshot](http://qiniu1.letow.top/snipaste%202018.12.13-03.32.jpg)
 
+You can enable shortcut `Ctrl + Win + B` to call the application. 
+
+可以启用快捷键 `Ctrl + Win + B` ，用于唤出操作界面。
+
+![enable shortcut](http://qiniu1.letow.top/snipaste%202018.12.25-23.34.jpg)
+
+And you can choose your prefer monitor by right-click (experimental function), whose tab page will be shown by default when the application is called.
+
+右键来选择偏好的显示器（实验功能），将默认展示对应的标签页。
+
+![set prefer monitor](http://qiniu1.letow.top/snipaste%202018.12.25-23.34_0.jpg)
+
 ## attention
 
 You can use it for your screen with the DDC/CI protocol enabled (usually it is enabled, you can use physical buttons on the screen to check). This application start supporting multiple monitors after 2.0.1 version.
