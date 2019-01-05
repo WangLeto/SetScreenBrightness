@@ -12,11 +12,13 @@ You can enable shortcut `Ctrl + Win + B` to call the application.
 
 ![enable shortcut](http://qiniu1.letow.top/snipaste%202018.12.25-23.34.jpg)
 
-And you can choose your prefer monitor by right-click (experimental function), whose tab page will be shown by default when the application is called.
+And you can choose your prefer monitor by right-click (experimental function), whose tab page will be shown by default when the application is called. You can rename your monitor, and then restore it.
 
-右键来选择偏好的显示器（实验功能），将默认展示对应的标签页。
+右键来选择偏好的显示器（实验功能），将默认展示对应的标签页；重命名显示器，或恢复默认名称。
 
-![set prefer monitor](http://qiniu1.letow.top/snipaste%202018.12.25-23.34_0.jpg)
+![set prefer monitor](http://qiniu1.letow.top/snipaste%202019.01.06-03.38.jpg)
+
+
 
 ## attention
 
