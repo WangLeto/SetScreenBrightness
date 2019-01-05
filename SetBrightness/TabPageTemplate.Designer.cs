@@ -38,6 +38,8 @@
             this.brightLabel = new System.Windows.Forms.Label();
             this.tabPageContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.preferMonitorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.renameMonitorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.restoreMonitorNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.brightTrackbar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.contrastTrackbar)).BeginInit();
             this.tabPageContextMenuStrip.SuspendLayout();
@@ -106,17 +108,34 @@
             // tabPageContextMenuStrip
             // 
             this.tabPageContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.preferMonitorToolStripMenuItem});
+            this.preferMonitorToolStripMenuItem,
+            this.renameMonitorToolStripMenuItem,
+            this.restoreMonitorNameToolStripMenuItem});
             this.tabPageContextMenuStrip.Name = "tabPageContextMenuStrip";
-            this.tabPageContextMenuStrip.Size = new System.Drawing.Size(209, 48);
+            this.tabPageContextMenuStrip.Size = new System.Drawing.Size(161, 92);
+            this.tabPageContextMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this.tabPageContextMenuStrip_Opening);
             // 
             // preferMonitorToolStripMenuItem
             // 
             this.preferMonitorToolStripMenuItem.CheckOnClick = true;
             this.preferMonitorToolStripMenuItem.Name = "preferMonitorToolStripMenuItem";
-            this.preferMonitorToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
-            this.preferMonitorToolStripMenuItem.Text = "优先显示器（实验功能）";
+            this.preferMonitorToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.preferMonitorToolStripMenuItem.Text = "设为偏好显示器";
             this.preferMonitorToolStripMenuItem.Click += new System.EventHandler(this.pinTabPageToolStripMenuItem_Click);
+            // 
+            // renameMonitorToolStripMenuItem
+            // 
+            this.renameMonitorToolStripMenuItem.Name = "renameMonitorToolStripMenuItem";
+            this.renameMonitorToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.renameMonitorToolStripMenuItem.Text = "重命名显示器";
+            this.renameMonitorToolStripMenuItem.Click += new System.EventHandler(this.renameMonitorToolStripMenuItem_Click);
+            // 
+            // restoreMonitorNameToolStripMenuItem
+            // 
+            this.restoreMonitorNameToolStripMenuItem.Name = "restoreMonitorNameToolStripMenuItem";
+            this.restoreMonitorNameToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
+            this.restoreMonitorNameToolStripMenuItem.Text = "重置显示器名称";
+            this.restoreMonitorNameToolStripMenuItem.Click += new System.EventHandler(this.restoreMonitorNameToolStripMenuItem_Click);
             // 
             // TabPageTemplate
             // 
@@ -151,5 +170,7 @@
         private System.Windows.Forms.Label brightLabel;
         private System.Windows.Forms.ContextMenuStrip tabPageContextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem preferMonitorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem renameMonitorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem restoreMonitorNameToolStripMenuItem;
     }
 }

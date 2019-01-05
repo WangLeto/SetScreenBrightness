@@ -14,6 +14,7 @@ namespace SetBrightness
         public string Name = "";
         public MonitorType Type;
         public string Id = "";
+        public string UserDefineName = "";
 
         public abstract void SetBrightness(int brightness);
         public abstract void SetContrast(int contrast);

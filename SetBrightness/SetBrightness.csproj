@@ -87,7 +87,9 @@
     <Compile Include="Monitor.cs" />
     <Compile Include="MouseHook.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Prompt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SettingManager.cs" />
     <Compile Include="TabForm.cs">
       <SubType>Form</SubType>
     </Compile>

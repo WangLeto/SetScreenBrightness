@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
-using SetBrightness.Properties;
 using Timer = System.Timers.Timer;
 
 namespace SetBrightness
@@ -26,7 +25,7 @@ namespace SetBrightness
         private readonly MouseHook _mouseHook = new MouseHook();
         private readonly MonitorsManager _monitorsManager;
         public const string WindowName = "亮度调节";
-        KeyboardHook _hook = new KeyboardHook();
+        private readonly KeyboardHook _hook = new KeyboardHook();
 
         #endregion
 
@@ -104,11 +103,14 @@ namespace SetBrightness
                 return;
             }
 
-            var page = new TabPage(monitor.Name);
-            var template = new TabPageTemplate(monitor, PageControlName, _monitorsManager);
+            var page = new TabPage(
+                string.IsNullOrWhiteSpace(monitor.UserDefineName) ? monitor.Name : monitor.UserDefineName);
+            var template = new TabPageTemplate(monitor, PageControlName, _monitorsManager, tabControl.TabCount + 1);
+            template.ChangeMonitorNameEventHandler += (sender, args) => { UpdatePageName(args.NewName, args.Uuid); };
             template.UpdateValues();
             page.Controls.Add(template);
             tabControl.TabPages.Add(page);
+            template.LoadUserName();
         }
 
         private bool IsNewMonitor(Monitor monitor)
@@ -193,7 +195,7 @@ namespace SetBrightness
         private const int TallHeight = 137;
         private const int LowHeight = 86;
 
-        public void AdjustHeight(bool useContrast)
+        private void AdjustHeight(bool useContrast)
         {
             var height = useContrast ? TallHeight : LowHeight;
             Height = height;
@@ -481,6 +483,26 @@ namespace SetBrightness
         }
 
         #endregion
+
+        private void homepageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/WangLeto/SetScreenBrightness");
+        }
+
+        /// <summary>
+        /// 用于用户为显示器改名后及时更新
+        /// </summary>
+        private void UpdatePageName(string name, int uuid)
+        {
+            foreach (TabPage page in tabControl.TabPages)
+            {
+                var template = (TabPageTemplate) page.Controls[PageControlName];
+                if (template.Uuid == uuid)
+                {
+                    page.Text = name;
+                }
+            }
+        }
     }
 
     internal class CheckManager
@@ -545,39 +567,6 @@ namespace SetBrightness
                 {
                     _key?.DeleteValue(_name, false);
                 }
-            }
-        }
-    }
-
-    internal static class SettingManager
-    {
-        public static bool UseContrast
-        {
-            get { return Settings.Default.use_contrast; }
-            set
-            {
-                Settings.Default.use_contrast = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public static bool UseHotKey
-        {
-            get { return Settings.Default.use_hotkey; }
-            set
-            {
-                Settings.Default.use_hotkey = value;
-                Settings.Default.Save();
-            }
-        }
-
-        public static string PreferMonitor
-        {
-            get { return Settings.Default.prefer_monitor; }
-            set
-            {
-                Settings.Default.prefer_monitor = value;
-                Settings.Default.Save();
             }
         }
     }

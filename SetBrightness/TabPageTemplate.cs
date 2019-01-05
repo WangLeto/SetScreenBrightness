@@ -14,12 +14,15 @@ namespace SetBrightness
         private readonly MonitorsManager _monitorsManager;
         private readonly SetMonitorQueue _setQueue;
         public readonly MonitorType MonitorType;
+        public event EventHandler<RenameMonitorEvent> ChangeMonitorNameEventHandler;
+        public readonly int Uuid;
 
-        public TabPageTemplate(Monitor monitor, string name, MonitorsManager monitorsManager)
+        public TabPageTemplate(Monitor monitor, string name, MonitorsManager monitorsManager, int uuid)
         {
             InitializeComponent();
             _monitor = monitor;
             _monitorsManager = monitorsManager;
+            Uuid = uuid;
             Name = name;
             MonitorType = monitor.Type;
 
@@ -228,6 +231,77 @@ namespace SetBrightness
         public bool IsPreferred(string id)
         {
             return _monitor.Id == id;
+        }
+
+        private static bool _hasOpenPrompt;
+
+        private void renameMonitorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_hasOpenPrompt)
+            {
+                return;
+            }
+
+            _hasOpenPrompt = true;
+            var currentName = string.IsNullOrWhiteSpace(_monitor.UserDefineName)
+                ? _monitor.Name
+                : _monitor.UserDefineName;
+            var input = Prompt.ShowDialog("重命名此设备", currentName);
+            _hasOpenPrompt = false;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return;
+            }
+
+            if (_monitor.Name.Equals(input.Trim()))
+            {
+                return;
+            }
+
+            _monitor.UserDefineName = input;
+            SettingManager.AddRenameMonitor(_monitor.Id, input);
+            ChangeMonitorNameEventHandler?.Invoke(sender, new RenameMonitorEvent(input, Uuid));
+        }
+
+        public void LoadUserName()
+        {
+            var dictionary = SettingManager.GetReNameMonitors();
+            if (!dictionary.ContainsKey(_monitor.Id))
+            {
+                return;
+            }
+
+            _monitor.UserDefineName = dictionary[_monitor.Id];
+            ChangeMonitorNameEventHandler?.Invoke(null, new RenameMonitorEvent(_monitor.UserDefineName, Uuid));
+        }
+
+        private void tabPageContextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            restoreMonitorNameToolStripMenuItem.Visible = !string.IsNullOrWhiteSpace(_monitor.UserDefineName);
+        }
+
+        private void restoreMonitorNameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(_monitor.UserDefineName))
+            {
+                return;
+            }
+
+            _monitor.UserDefineName = "";
+            SettingManager.RemoveMonitorName(_monitor.Id);
+            ChangeMonitorNameEventHandler?.Invoke(sender, new RenameMonitorEvent(_monitor.Name, Uuid));
+        }
+    }
+
+    public class RenameMonitorEvent : EventArgs
+    {
+        public string NewName { get; }
+        public int Uuid { get; }
+
+        public RenameMonitorEvent(string newName, int uuid)
+        {
+            NewName = newName;
+            Uuid = uuid;
         }
     }
 }

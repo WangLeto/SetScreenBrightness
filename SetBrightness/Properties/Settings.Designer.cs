@@ -58,5 +58,17 @@ namespace SetBrightness.Properties {
                 this["prefer_monitor"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string rename_monitor {
+            get {
+                return ((string)(this["rename_monitor"]));
+            }
+            set {
+                this["rename_monitor"] = value;
+            }
+        }
     }
 }
