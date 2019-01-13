@@ -65,9 +65,8 @@ namespace SetBrightness
         private void _mouseHook_MouseLDown(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
         {
             goOn = true;
-
-            var point = mouseStruct.pt;
-            if (!Visible || Bounds.Contains(new Point(point.x, point.y)))
+            
+            if (!Visible || Bounds.Contains(Cursor.Position))
             {
                 return;
             }
@@ -79,8 +78,7 @@ namespace SetBrightness
 
         private void _mouseHook_MouseRDown(MouseHook.Msllhookstruct mouseStruct, out bool goOn)
         {
-            var point = mouseStruct.pt;
-            if (!Visible || !tabControl.SelectedTab.Bounds.Contains(PointToClient(new Point(point.x, point.y))))
+            if (!Visible || !tabControl.SelectedTab.Bounds.Contains(PointToClient(Cursor.Position)))
             {
                 goOn = true;
                 return;
